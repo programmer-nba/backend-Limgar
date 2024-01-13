@@ -21,6 +21,9 @@ app.use("/Limgar/me", require("./routes/me"));
 
 // user
 app.use("/Limgar/admin", require("./routes/user/admin"));
+app.use("/Limgar/agent", require("./routes/user/agent"));
+
+app.use("/Limgar/channels", require("./routes/more/channels"));
 
 const port = process.env.PORT || 7474;
 app.listen(port, console.log(`Listening on port ${port}`));
