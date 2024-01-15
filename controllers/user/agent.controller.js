@@ -1,13 +1,13 @@
 const bcrypt = require("bcrypt");
-const {Agents, validate} = require("../../model/user/agent.model");
+const { Agents, validate } = require("../../model/user/agent.model");
 
 exports.create = async (req, res) => {
   try {
-    const {error} = validate(req.body);
+    const { error } = validate(req.body);
     if (error)
       return res
         .status(403)
-        .send({message: error.details[0].message, status: false});
+        .send({ message: error.details[0].message, status: false });
     const admin = await Agents.findOne({
       name: req.body.name,
       tel: req.body.tel,
@@ -24,10 +24,15 @@ exports.create = async (req, res) => {
       ...req.body,
       password: hashPassword,
       timestamp: Date.now(),
+      active: false,
+      status: {
+        name: "รอตรวจสอบ",
+        timestamp: Date.now()
+      }
     }).save();
-    return res.status(200).send({status: true, message: "สมัครสมาชิกสำเร็จ"});
+    return res.status(200).send({ status: true, message: "สมัครสมาชิกสำเร็จ" });
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
@@ -37,12 +42,12 @@ exports.getAgentAll = async (req, res) => {
     if (!agent)
       return res
         .status(404)
-        .send({status: false, message: "ดึงข้อมูลไม่สำเร็จ"});
+        .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
     return res
       .status(200)
-      .send({status: true, message: "ดึงข้อมูลสำเร็จ", data: agent});
+      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: agent });
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
@@ -53,76 +58,76 @@ exports.getAgentById = async (req, res) => {
     if (!agent)
       return res
         .status(404)
-        .send({status: false, message: "ดึงข้อมูลไม่สำเร็จ"});
+        .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
     return res
       .status(200)
-      .send({status: true, message: "ดึงข้อมูลสำเร็จ", data: agent});
+      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: agent });
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
 exports.update = async (req, res) => {
   try {
     if (!req.body)
-      return res.status(404).send({status: false, message: "ส่งข้อมูลผิดพลาด"});
+      return res.status(404).send({ status: false, message: "ส่งข้อมูลผิดพลาด" });
     const id = req.params.id;
     if (!req.body.password) {
-      Agents.findByIdAndUpdate(id, req.body, {useFindAndModify: false})
+      Agents.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
         .then((item) => {
           if (!item)
             return res
               .status(404)
-              .send({status: false, message: "แก้ไขข้อมูลไม่สำเร็จ"});
+              .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
           return res
             .status(200)
-            .send({status: true, message: "แก้ไขข้อมูลสำเร็จ"});
+            .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
         })
         .catch((err) => {
           console.log(err);
           return res
             .status(500)
-            .send({status: false, message: "มีบางอย่างผิดพลาด" + id});
+            .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
         });
     } else {
       const salt = await bcrypt.genSalt(Number(process.env.SALT));
       const hashPassword = await bcrypt.hash(req.body.password, salt);
       Agents.findByIdAndUpdate(
         id,
-        {...req.body, password: hashPassword},
-        {useFindAndModify: false}
+        { ...req.body, password: hashPassword },
+        { useFindAndModify: false }
       )
         .then((item) => {
           if (!item)
             return res
               .status(404)
-              .send({status: false, message: "แก้ไขข้อมูลไม่สำเร็จ"});
+              .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
           return res
             .status(200)
-            .send({status: true, message: "แก้ไขข้อมูลสำเร็จ"});
+            .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
         })
         .catch((err) => {
           console.log(err);
           return res
             .status(500)
-            .send({status: false, message: "มีบางอย่างผิดพลาด" + id});
+            .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
         });
     }
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
 exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
-    Agents.findByIdAndDelete(id, {useFindAndModify: false})
+    Agents.findByIdAndDelete(id, { useFindAndModify: false })
       .then((item) => {
         if (!item)
           return res
             .status(404)
-            .send({message: "ไม่สามารถลบข้อมูลตัวแทนขายนี้ได้"});
-        return res.status(200).send({message: "ลบข้อมูลตัวแทนขายสำเร็จ"});
+            .send({ message: "ไม่สามารถลบข้อมูลตัวแทนขายนี้ได้" });
+        return res.status(200).send({ message: "ลบข้อมูลตัวแทนขายสำเร็จ" });
       })
       .catch((err) => {
         res.status(500).send({
@@ -131,6 +136,50 @@ exports.delete = async (req, res) => {
         });
       });
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+exports.comfirm = async (req, res) => {
+  try {
+    const updateStatus = await Agents.findOne({ _id: req.params.id });
+    if (updateStatus) {
+      updateStatus.status.push({
+        name: "อนุมัติ",
+        timestamp: Date.now(),
+      });
+      updateStatus.save();
+      return res.status(200).send({
+        status: true,
+        message: "อนุมัติตัวแทนขายสำเร็จ",
+        data: updateStatus,
+      });
+    } else {
+      return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
+    }
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+exports.cancel = async (req, res) => {
+  try {
+    const updateStatus = await Agents.findOne({ _id: req.params.id });
+    if (updateStatus) {
+      updateStatus.status.push({
+        name: "ไม่อนุมัติ",
+        timestamp: Date.now(),
+      });
+      updateStatus.save();
+      return res.status(200).send({
+        status: true,
+        message: "ยกเลิกอนุมัติตัวแทนขายสำเร็จ",
+        data: updateStatus,
+      });
+    } else {
+      return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
+    }
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };

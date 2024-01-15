@@ -25,5 +25,13 @@ app.use("/Limgar/agent", require("./routes/user/agent"));
 
 app.use("/Limgar/channels", require("./routes/more/channels"));
 
+// Function
+app.use("/Limgar/function", require("./routes/more/function"));
+
+// Delete Image
+app.use("/Limgar/delete/image", require("./routes/more/deleteImage"));
+// UPLOAD FILE COLLECTION
+app.use("/Limgar/image/collection", require("./routes/more/uploadfile"));
+
 const port = process.env.PORT || 7474;
 app.listen(port, console.log(`Listening on port ${port}`));
