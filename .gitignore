@@ -28,4 +28,4 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-test_1/playground-1.mongodb.js
+test_1
