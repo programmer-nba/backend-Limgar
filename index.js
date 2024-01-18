@@ -28,6 +28,8 @@ app.use("/Limgar/channels", require("./routes/more/channels"));
 // Porduct
 app.use("/Limgar/product", require("./routes/product/product"));
 app.use("/Limgar/product/image", require("./controllers/product/uploadfile"));
+//product_Price
+app.use("/Limgar/product_price", require("./routes/product/product_price"));
 
 // Function
 app.use("/Limgar/function", require("./routes/more/function"));
