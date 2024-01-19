@@ -19,6 +19,7 @@ exports.create = async (req, res) => {
       }
     await new Products({
       ...req.body,
+      isOutStock: false,
     }).save();
     return res.status(200).send({ status: true, message: "เพิ่มสินค้าสำเร็จ" });
   } catch (err) {

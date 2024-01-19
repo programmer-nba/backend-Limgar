@@ -1,6 +1,7 @@
 //const { Products, validate } = require("../../model/product/product.model");
 //const { Products, validate } = require("../../test_SplitPriceAndProduct/model/product/product.model");
-const { ProductsPrice, validate } = require("../../model/product/product_price.model")
+//const { ProductsPrice, validate } = require("../../model/product/product_price.model")
+const { ProductsPrice, validate } = require("../../test_SplitPriceAndProduct/model/product/product_price.model")
 
 exports.create = async (req, res) => {
   try {
@@ -10,16 +11,24 @@ exports.create = async (req, res) => {
         .status(403)
         .send({ message: error.details[0].message, status: false });
     const product_price = await ProductsPrice.findOne({
+      branch_id: req.body.branch_id,
+      product_id: req.body.product_id,
       amount: req.body.amount,
     });
     if (product_price)
-      if ((product_price.amount && product_price.branchName) === (req.body.amount && req.body.branchName)) {
+      if ((product_price.amount === req.body.amount) && (product_price.product_id === req.body.product_id) && (product_price.branch_id === req.body.branch_id)) {
         return res
           .status(401)
           .send({ status: false, message: "ราคาสินค้านี้มีในระบบแล้ว" });
       }
     await new ProductsPrice({
       ...req.body,
+      isHqAdminOnly: true,
+
+      /*  isExtraCOD: (amount) => {
+          if (amount >= 5)
+            return true //แพ็กเกิน 5 ขวด ชาร์จค่าส่งเพิ่ม
+        },*/
     }).save();
     return res.status(200).send({ status: true, message: "เพิ่มราคาสินค้าสำเร็จ" });
   } catch (err) {
