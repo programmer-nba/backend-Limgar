@@ -25,6 +25,9 @@ app.use("/Limgar/agent", require("./routes/user/agent"));
 
 app.use("/Limgar/channels", require("./routes/more/channels"));
 
+//Branch
+app.use("/Limgar/branch", require("./routes/branch/branch"));
+
 // Porduct
 app.use("/Limgar/product", require("./routes/product/product"));
 app.use("/Limgar/product/image", require("./controllers/product/uploadfile"));
