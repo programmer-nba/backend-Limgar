@@ -9,6 +9,7 @@ const ProductShema = new mongoose.Schema({
   product_description: { type: String, required: false },
   product_image: { type: String, required: false },
   product_cost: { type: Number, required: true },
+  product_net_weight: { type: Number, required: true },
   isOutStock: { type: Boolean, required: true }
 });
 
@@ -22,6 +23,7 @@ const validate = (data) => {
     product_detail: Joi.string().required().label("test_กรอกรายละเอียดสินค้า"),
     product_description: Joi.string().required().label("test_กรอกคำอธิบายสินค้า"),
     product_cost: Joi.number().required().label("test_กรอกต้นทุนสินค้า"),
+    product_net_weight: Joi.number().required().label("test_กรอกน้ำหนักสินค้า"),
     isOutStock: Joi.boolean().default(false),
   });
   return schema.validate(data);
