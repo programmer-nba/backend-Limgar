@@ -3,6 +3,7 @@ const Joi = require("joi");
 
 const StockSchema = new mongoose.Schema({
   timestamp: { type: Date, required: false, default: Date.now() },
+  createdDatetime: { type: Date, required: false },
   product_barcode_id: { type: String, required: true },
   product_name: { type: String, required: true },
   stock_category: { type: String, required: false },
@@ -16,17 +17,22 @@ const StockSchema = new mongoose.Schema({
   reserved_qty: { type: Number, required: false },
   transactions: [{
     timestamp: { type: Date, required: false, default: Date.now() },
-    branch_id: { type: String, required: false },
-    branchName: { type: String, required: false },
-    isHqAdminOnly: { type: Boolean, required: false },
-    product_barcode_id: { type: String, required: false },
-    product_name: { type: String, required: false },
-    stock_category: { type: String, required: false },
-    qty: { type: Number, required: false },
-    item_status: { type: String, required: false },
-    requester_user: { type: String, required: false },
     approver_user: { type: String, required: false },
     remark: { type: String, required: false },
+    order_status: { type: String, required: false },
+    detail: {
+      order_id: { type: String, required: false },
+      createdDatetime: { type: String, required: false },
+      branch_id: { type: String, required: false },
+      branchName: { type: String, required: false },
+      isHqAdminOnly: { type: Boolean, required: false },
+      product_barcode_id: { type: String, required: false },
+      product_name: { type: String, required: false },
+      stock_category: { type: String, required: false },
+      item_status: { type: String, required: false },
+      qty: { type: Number, required: false },
+      requester_user: { type: String, required: false },
+    },
   }],
 });
 
