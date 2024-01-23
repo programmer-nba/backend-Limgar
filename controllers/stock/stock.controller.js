@@ -214,8 +214,8 @@ exports.holdOrderById = async (req, res) => {
     });
 
     if (requestOrder) {
-      let b = requestOrder.transactions
-      let a = requestOrder.transactions[b.length - 1].detail.order_id
+      // let b = requestOrder.transactions
+      // let a = requestOrder.transactions[b.length - 1].detail.order_id
       debugger
       requestOrder.transactions.push({
         ...req.body,

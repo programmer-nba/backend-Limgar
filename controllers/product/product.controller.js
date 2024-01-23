@@ -1,5 +1,8 @@
 //const { Products, validate } = require("../../model/product/product.model");
 const { Products, validate } = require("../../test_SplitPriceAndProduct/model/product/product.model");
+const { ProductsPrice } = require("../../test_SplitPriceAndProduct/model/product/product_price.model");
+var _ = require("lodash");
+
 
 exports.create = async (req, res) => {
   try {
@@ -9,10 +12,11 @@ exports.create = async (req, res) => {
         .status(403)
         .send({ message: error.details[0].message, status: false });
     const product = await Products.findOne({
-      product_name: req.body.product_name,
+      //product_name: req.body.product_name,
+      product_barcode: req.body.product_barcode,
     });
     if (product)
-      if (product.product_pack.name === req.body.product_pack.name) {
+      if (product.name === req.body.product_name) {
         return res
           .status(401)
           .send({ status: false, message: "สินค้านี้มีในระบบแล้ว" });
@@ -28,8 +32,32 @@ exports.create = async (req, res) => {
 };
 
 exports.getProductAll = async (req, res) => {
+  //const branchName = req.body.branchName
   try {
     const product = await Products.find();
+    const priceLists = await ProductsPrice.find();
+
+    let newData = [];
+    _.forEach(priceLists, (value, key) => {
+      if (value.branchName == "HQ") {
+        newData.push({
+          "amount": value.amount,
+          "price": value.price,
+          "priceCOD": value.priceCOD,
+          "product_id": value.product_id,
+          "product_name": value.product_name,
+          "branchName": value.branchName,
+          "extraCOD": value.extraCOD
+        });
+      }
+    });
+
+    /* let newData2 = _.reduce(priceLists.price["key"], (result, value, key) => {
+       result[value] = key;
+       return result;
+     }, {});*/
+    debugger
+
     if (!product)
       return res
         .status(404)
