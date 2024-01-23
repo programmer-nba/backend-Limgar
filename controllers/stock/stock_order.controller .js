@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const { Stocks, validate } = require("../../model/stock/stock_order.model");
+const { StockOrders, validate } = require("../../model/stock/stock_order.model");
 
 exports.create = async (req, res) => {
   try {

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 
-const StockOrderSchema = new mongoose.Schema({
+const OrderSchema = new mongoose.Schema({
   timestamp: { type: Date, required: false, default: Date.now() },
   order_status: { type: String, required: false },
   order_id: { type: String, required: false },
@@ -19,7 +19,7 @@ const StockOrderSchema = new mongoose.Schema({
   remark: { type: String, required: false }
 });
 
-const StockOrders = mongoose.model("stock_orders", StockOrderSchema);
+const Orders = mongoose.model("orders", OrderSchema);
 
 const validate = (data) => {
   const schema = Joi.object({
@@ -37,4 +37,4 @@ const validate = (data) => {
   return schema.validate(data);
 };
 
-module.exports = { StockOrders, validate };
+module.exports = { Orders, validate };
