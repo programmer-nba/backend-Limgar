@@ -39,19 +39,24 @@ exports.getProductAll = async (req, res) => {
   try {
     const product = await Products.find();
     const priceLists = await ProductsPrice.find();
-    //-- fix obj test
+
+    //-- HotFix obj test
     let newProductObj = {
-      product_barcode: product[0].product_barcode,
+      product_image: "https://lh3.googleusercontent.com/drive-viewer/AEYmBYSo_4ML297mXK6t6EqNgpVtFXG3fZu8pGo4BfRbeIVI-YWRCd9FcjVD-Q_TniWZuWFCrHDtdo0HGWvjy2ZVpz5JOHgb6A=s2560",
+      //product_barcode: product[0].product_barcode,
       product_name: product[0].product_name,
       product_category: product[0].product_category,
       product_detail: product[0].product_detail,
       product_description: product[0].product_description,
-      product_image: product[0].product_image,
       product_cost: product[0].product_cost,
-      product_net_weight: product[0].product_net_weight,
-      isOutStock: product[0].isOutStock,
+      //product_net_weight: product[0].product_net_weight,
+      //isOutStock: product[0].isOutStock,
       //package_priceSales: [],
-      price: {},
+      product_price: {},
+      product_pack: {
+        name: "ชิ้นTest",
+        amount: 0
+      }
     }
 
     let newData = [];
@@ -73,16 +78,19 @@ exports.getProductAll = async (req, res) => {
      })*/
     //newProductObj.package_priceSales = newData
 
-    newProductObj.price = newData[0].price
+    newProductObj.product_price = newData[0].price
+    let arrProducts = []
+    arrProducts.push(newProductObj)
 
-    if (!newProductObj)
+
+    if (!arrProducts)
       //if (!product)
       return res
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: newProductObj });
+      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: arrProducts });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
