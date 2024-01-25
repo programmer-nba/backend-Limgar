@@ -24,6 +24,7 @@ const StockOrders = mongoose.model("stock_orders", StockOrderSchema);
 const validate = (data) => {
   const schema = Joi.object({
     timestamp: Joi.date().default(Date.now()),
+    order_id: Joi.string().default("0").label("ใส่รหัสบันทึกสต๊อกสินค้า")
     /*product_barcode_id: Joi.string().required().label("ใส่บาร์โค๊ดสต๊อกสินค้า"),
     product_name: Joi.string().required().label("ใส่ชื่อสต๊อกสินค้า"),
     stock_category: Joi.string().required().label("ใส่แคตตาล็อกต๊อกสินค้า"),
