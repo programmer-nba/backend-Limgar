@@ -16,7 +16,7 @@ exports.create = async (req, res) => {
       amount: req.body.amount,
     });
     if (product_price)
-      if ((product_price.amount === req.body.amount) && (product_price.product_id === req.body.product_id) && (product_price.branch_id === req.body.branch_id)) {
+      if ((product_price.amount === req.body.amount) && (product_price.product_oid === req.body.product_oid) && (product_price.branch_oid === req.body.branch_oid)) {
         return res
           .status(401)
           .send({ status: false, message: "ราคาสินค้านี้มีในระบบแล้ว" });

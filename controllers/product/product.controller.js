@@ -1,8 +1,7 @@
-//const { Products, validate } = require("../../model/product/product.model");
+//const { ProductOlds } = require("../../model/product/product.model");
 const { Products, validate } = require("../../test_SplitPriceAndProduct/model/product/product.model");
 const { ProductsPrice } = require("../../test_SplitPriceAndProduct/model/product/product_price.model");
 var _ = require("lodash");
-
 
 exports.create = async (req, res) => {
   try {
@@ -40,57 +39,65 @@ exports.getProductAll = async (req, res) => {
     const product = await Products.find();
     const priceLists = await ProductsPrice.find();
 
-    //-- HotFix obj test
-    let newProductObj = {
-      product_image: "https://lh3.googleusercontent.com/drive-viewer/AEYmBYSo_4ML297mXK6t6EqNgpVtFXG3fZu8pGo4BfRbeIVI-YWRCd9FcjVD-Q_TniWZuWFCrHDtdo0HGWvjy2ZVpz5JOHgb6A=s2560",
-      //product_barcode: product[0].product_barcode,
-      product_name: product[0].product_name,
-      product_category: product[0].product_category,
-      product_detail: product[0].product_detail,
-      product_description: product[0].product_description,
-      product_cost: product[0].product_cost,
-      //product_net_weight: product[0].product_net_weight,
-      //isOutStock: product[0].isOutStock,
-      //package_priceSales: [],
-      product_price: {},
-      product_pack: {
-        name: "ชิ้นTest",
-        amount: 0
-      }
-    }
-
-    let newData = [];
-    _.forEach(priceLists, (value, key) => {
-      if (value.branchName == searchByBranchName) {
-        newData.push({
-          "amount": value.amount,
-          "price": value.price,
-          "priceCOD": value.priceCOD,
-          "product_barcode": value.product_barcode,
-          "product_name": value.product_name,
-          "branchName": value.branchName,
-          "isExtraCOD": value.isExtraCOD
-        });
-      }
-    });
-    /* _.find(priceLists,(val,key)=>{
-       val.branchName == searchByBranchName
-     })*/
-    //newProductObj.package_priceSales = newData
-
-    newProductObj.product_price = newData[0].price
-    let arrProducts = []
-    arrProducts.push(newProductObj)
-
-
-    if (!arrProducts)
-      //if (!product)
+    if (!product)
       return res
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
+
+    //-- HotFix obj test
+    let newData = [];
+    let newProduct
+
+    _.forEach(priceLists, (value, key) => {
+      if (value.branchName == searchByBranchName) {
+
+        let data_a = {
+          product_oid: value.product_oid,
+          amount: value.amount,
+          price: value.price,
+          priceCOD: value.priceCOD,
+          product_barcode: value.product_barcode,
+          product_name: value.product_name,
+          branchName: value.branchName,
+          isExtraCOD: value.isExtraCOD,
+
+          product_image: "",
+          product_barcode: "",
+          product_name: "",
+          product_category: "",
+          product_detail: "",
+          product_description: "",
+          product_cost: "",
+          product_net_weight: "",
+          product_pack: {
+            name: "ชิ้น/Pack",
+            amount: value.amount
+          }
+        }
+
+        newProduct = _.find(product, (value2, key2) => {
+          if (value2.id == value.product_oid) {
+            return true
+          }
+        });
+
+        data_a.product_image = newProduct.product_image;
+        data_a.product_barcode = newProduct.product_barcode;
+        data_a.product_name = newProduct.product_name;
+        data_a.product_category = newProduct.product_category;
+        data_a.product_detail = newProduct.product_detail;
+        data_a.product_description = newProduct.product_description;
+        data_a.product_cost = newProduct.product_cost;
+        data_a.product_net_weight = newProduct.product_net_weight;
+
+        newData.push(data_a)
+
+      }
+
+    });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: arrProducts });
+      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: newData });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
