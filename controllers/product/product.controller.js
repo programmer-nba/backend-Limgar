@@ -33,38 +33,56 @@ exports.create = async (req, res) => {
 
 exports.getProductAll = async (req, res) => {
   //const branchName = req.body.branchName
+
+  //--ค้นเฉพาะ ราคาจากHQ
+  const searchByBranchName = "HQ"
   try {
     const product = await Products.find();
     const priceLists = await ProductsPrice.find();
+    //-- fix obj test
+    let newProductObj = {
+      product_barcode: product[0].product_barcode,
+      product_name: product[0].product_name,
+      product_category: product[0].product_category,
+      product_detail: product[0].product_detail,
+      product_description: product[0].product_description,
+      product_image: product[0].product_image,
+      product_cost: product[0].product_cost,
+      product_net_weight: product[0].product_net_weight,
+      isOutStock: product[0].isOutStock,
+      //package_priceSales: [],
+      price: {},
+    }
 
     let newData = [];
     _.forEach(priceLists, (value, key) => {
-      if (value.branchName == "HQ") {
+      if (value.branchName == searchByBranchName) {
         newData.push({
           "amount": value.amount,
           "price": value.price,
           "priceCOD": value.priceCOD,
-          "product_id": value.product_id,
+          "product_barcode": value.product_barcode,
           "product_name": value.product_name,
           "branchName": value.branchName,
-          "extraCOD": value.extraCOD
+          "isExtraCOD": value.isExtraCOD
         });
       }
     });
+    /* _.find(priceLists,(val,key)=>{
+       val.branchName == searchByBranchName
+     })*/
+    //newProductObj.package_priceSales = newData
 
-    /* let newData2 = _.reduce(priceLists.price["key"], (result, value, key) => {
-       result[value] = key;
-       return result;
-     }, {});*/
-    debugger
+    newProductObj.price = newData[0].price
 
-    if (!product)
+    if (!newProductObj)
+      //if (!product)
       return res
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: product });
+      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: newProductObj });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
