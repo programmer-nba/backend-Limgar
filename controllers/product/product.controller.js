@@ -44,11 +44,12 @@ exports.getProductAll = async (req, res) => {
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
 
-    //-- HotFix obj test
+    //--HotFix obj test
     let newData = [];
     let newProduct
 
     _.forEach(priceLists, (value, key) => {
+
       if (value.branchName == searchByBranchName) {
 
         let data_a = {
@@ -94,7 +95,8 @@ exports.getProductAll = async (req, res) => {
 
       }
 
-    });
+    }
+    );
     return res
       .status(200)
       .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: newData });
@@ -131,14 +133,14 @@ exports.update = async (req, res) => {
             .status(404)
             .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
         return res
-          .status(200)
-          .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
+          .status(200) //--hotfix
+          .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" + "product_id : " + id });
       })
       .catch((err) => {
         console.log(err);
         return res
           .status(500)
-          .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
+          .send({ status: false, message: "มีบางอย่างผิดพลาด " + id });
       });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
