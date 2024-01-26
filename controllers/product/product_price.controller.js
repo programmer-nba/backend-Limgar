@@ -21,15 +21,30 @@ exports.create = async (req, res) => {
           .status(401)
           .send({ status: false, message: "ราคาสินค้านี้มีในระบบแล้ว" });
       }
+    //--HotFix branch HQ only
     await new ProductsPrice({
       ...req.body,
       isHqAdminOnly: true,
+      branch_oid: "65aa1506f866895c9585e033",
+      branchName: "HQ",
 
       /*  isExtraCOD: (amount) => {
           if (amount >= 5)
             return true //แพ็กเกิน 5 ขวด ชาร์จค่าส่งเพิ่ม
         },*/
     }).save();
+
+    //--HotFix add product price oid
+    const product_price2 = await ProductsPrice.findOne({
+      product_id: req.body.product_id,
+      amount: req.body.amount,
+    });
+    await ProductsPrice.findByIdAndUpdate(
+      product_price2.id,
+      { product_price_oid: product_price2.id },
+      { useFindAndModify: false }
+    );
+
     return res.status(200).send({ status: true, message: "เพิ่มราคาสินค้าสำเร็จ" });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });

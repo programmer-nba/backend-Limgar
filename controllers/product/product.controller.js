@@ -4,6 +4,7 @@ const { ProductsPrice } = require("../../test_SplitPriceAndProduct/model/product
 var _ = require("lodash");
 
 exports.create = async (req, res) => {
+  //const newProduct = req.body;
   try {
     const { error } = validate(req.body);
     if (error)
@@ -23,7 +24,41 @@ exports.create = async (req, res) => {
     await new Products({
       ...req.body,
       isOutStock: false,
+      product_image: "16_4k32_P7uDWvZMflvVXUKcI5jRNLfu_", //--HotFix
     }).save();
+
+    //--hotfix add data to product_price
+    const product2 = await Products.findOne({
+      //product_name: req.body.product_name,
+      product_barcode: req.body.product_barcode,
+    });
+
+    await new ProductsPrice({
+      //--hotfix initial first product's Price
+      ...req.body,
+      isHqAdminOnly: true,
+      //product_oid: product2.id,
+      branch_oid: "65aa1506f866895c9585e033",
+      branchName: "HQ",
+      amount: 1,
+      price: {
+        price_one: 0,
+        price_two: 0,
+        price_three: 0,
+        price_four: 0,
+        price_five: 0
+      },
+      priceCOD: {
+        price_one: 0,
+        price_two: 0,
+        price_three: 0,
+        price_four: 0,
+        price_five: 0
+      },
+      isExtraCOD: false
+
+    }).save();
+
     return res.status(200).send({ status: true, message: "เพิ่มสินค้าสำเร็จ" });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
@@ -46,15 +81,16 @@ exports.getProductAll = async (req, res) => {
 
     //--HotFix obj test
     let newData = [];
-    let newProduct
-
+    let newProduct;
+    let data_a;
     _.forEach(priceLists, (value, key) => {
 
       if (value.branchName == searchByBranchName) {
 
-        let data_a = {
+        data_a = {
           product_oid: value.product_oid,
           amount: value.amount,
+          product_price_oid: value.id,
           price: value.price,
           priceCOD: value.priceCOD,
           product_barcode: value.product_barcode,
@@ -81,20 +117,30 @@ exports.getProductAll = async (req, res) => {
             return true
           }
         });
-
-        data_a.product_image = newProduct.product_image;
-        data_a.product_barcode = newProduct.product_barcode;
-        data_a.product_name = newProduct.product_name;
-        data_a.product_category = newProduct.product_category;
-        data_a.product_detail = newProduct.product_detail;
-        data_a.product_description = newProduct.product_description;
-        data_a.product_cost = newProduct.product_cost;
-        data_a.product_net_weight = newProduct.product_net_weight;
-
-        newData.push(data_a)
-
+        if (newProduct == undefined) {
+          //--hotFix unidentified productInfo
+          data_a.product_image = "-";
+          data_a.product_barcode = "-";
+          data_a.product_name = "-";
+          data_a.product_category = "-";
+          data_a.product_detail = "-";
+          data_a.product_description = "-";
+          data_a.product_cost = 0;
+          data_a.product_net_weight = 0;
+        }
+        else {
+          //--hotFix unidentified productInfo
+          data_a.product_image = newProduct.product_image;
+          data_a.product_barcode = newProduct.product_barcode;
+          data_a.product_name = newProduct.product_name;
+          data_a.product_category = newProduct.product_category;
+          data_a.product_detail = newProduct.product_detail;
+          data_a.product_description = newProduct.product_description;
+          data_a.product_cost = newProduct.product_cost;
+          data_a.product_net_weight = newProduct.product_net_weight;
+        }
       }
-
+      newData.push(data_a)
     }
     );
     return res

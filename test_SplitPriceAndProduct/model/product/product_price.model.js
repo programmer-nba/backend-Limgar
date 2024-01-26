@@ -3,11 +3,12 @@ const Joi = require("joi");
 
 const ProductPriceShema = new mongoose.Schema({
   product_oid: { type: String, required: true },
+  product_price_oid: { type: String, required: false },
   product_barcode: { type: String, required: false },
   product_name: { type: String, required: true },
-  branch_oid: { type: String, required: true },
-  branchName: { type: String, required: true },
-  isHqAdminOnly: { type: Boolean, required: true },
+  branch_oid: { type: String, required: false },
+  branchName: { type: String, required: false },
+  isHqAdminOnly: { type: Boolean, required: false },
   amount: { type: Number, required: false },
   price: {
     price_one: { type: Number, required: true },
@@ -17,7 +18,7 @@ const ProductPriceShema = new mongoose.Schema({
     price_five: { type: Number, required: false }
   },
   priceCOD: {
-    price_one: { type: Number, required: true },
+    price_one: { type: Number, required: false },
     price_two: { type: Number, required: false },
     price_three: { type: Number, required: false },
     price_four: { type: Number, required: false },
@@ -33,12 +34,12 @@ const validate = (data) => {
     product_oid: Joi.string().required().label("กรอกoidสินค้า"),
     product_barcode: Joi.string().required().label("กรอกรหัสสินค้า"),
     product_name: Joi.string().required().label("กรอกชื่อสินค้า"),
-    branch_oid: Joi.string().required().label("กรอกรหัสสาขา"),
-    branchName: Joi.string().required().label("กรอกชื่อสาขา"),
+    branch_oid: Joi.string().label("กรอกรหัสสาขา"),
+    branchName: Joi.string().label("กรอกชื่อสาขา"),
     //isHqAdminOnly: Joi.boolean().required().default(true),
     amount: Joi.number().required().default(1),
     price: {
-      price_one: Joi.number().required().default(0),
+      price_one: Joi.number().required().default(0).label("กรอกราคาสินค้า1"),
       price_two: Joi.number().required().default(0),
       price_three: Joi.number().required().default(0),
       price_four: Joi.number().required().default(0),
