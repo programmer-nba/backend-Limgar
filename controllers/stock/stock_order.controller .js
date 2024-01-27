@@ -8,13 +8,14 @@ exports.create = async (req, res) => {
       return res
         .status(403)
         .send({ message: error.details[0].message, status: false });
-    const stockName = await StockOrders.findOne({
-      product_barcode_id: req.body.product_barcode_id,
-    });
+    /*const stockName = await StockOrders.find({
+      id: req.body.id,
+    });*/
+    const stockName = undefined;
     if (stockName)
       return res.status(401).send({
         status: false,
-        message: "รายการบันทึกสต็อกนี้ในระบบเเล้ว",
+        message: "รายการบันทึกสต็อกนี้ มีในระบบเเล้ว",
       });
 
     /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
@@ -22,23 +23,23 @@ exports.create = async (req, res) => {
     await new StockOrders({
       ...req.body,
       timestamp: Date.now(),
-      order_id: req.body.order_id,
-      branch_id: req.body.branch_id,
-      branchName: req.body.branchName,
-      isHqAdminOnly: req.body.isHqAdminOnly,
+      stock_order_id: req.body.stock_order_id,
+      branch_oid: "65aa1506f866895c9585e033",
+      branchName: "HQ",
+      isHqAdminOnly: true,
       product_oid: req.body.product_oid,
       product_barcode: req.body.product_barcode,
       product_name: req.body.product_name,
-      stock_category: "",
-      item_status: "created",
-      qty: 0,
+      stock_category: req.body.stock_category,
+      item_status: req.body.item_status,
+      qty: req.body.qty,
       requester_user: "mock_Admin",
       approver_user: "mock_Admin",
-      order_status: "created",
-      remark: "-",
+      stock_order_status: req.body.stock_order_status,
+      remark: req.body.remark || "-",
 
     }).save();
-    return res.status(200).send({ status: true, message: "บันทึกสต็อกสำเร็จ" });
+    return res.status(200).send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ" });
 
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
@@ -51,10 +52,10 @@ exports.getStockOrderAll = async (req, res) => {
     if (!agent)
       return res
         .status(404)
-        .send({ status: false, message: "ดึงข้อมูลชื่อสต็อกไม่สำเร็จ" });
+        .send({ status: false, message: "ดึงรายการเคลื่อนไหวสต็อกไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลชื่อสต็อกสำเร็จ", data: agent });
+      .send({ status: true, message: "ดึงรายการเคลื่อนไหวสต็อกสำเร็จ", data: agent });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -67,10 +68,10 @@ exports.getStockById = async (req, res) => {
     if (!agent)
       return res
         .status(404)
-        .send({ status: false, message: "ดึงข้อมูลชื่อสต็อกไม่สำเร็จ" });
+        .send({ status: false, message: "ดึงรายการเคลื่อนไหวสต็อกไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลชื่อสต็อกสำเร็จ", data: agent });
+      .send({ status: true, message: "ดึงรายการเคลื่อนไหวสต็อกสำเร็จ", data: agent });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -79,7 +80,7 @@ exports.getStockById = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     if (!req.body)
-      return res.status(404).send({ status: false, message: "ส่งข้อมูลชื่อสต็อกผิดพลาด1" });
+      return res.status(404).send({ status: false, message: "ส่งรายการเคลื่อนไหวสต็อกผิดพลาด1" });
     const id = req.params.id;
     if (!req.body.password) {
       StockOrders.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
@@ -87,10 +88,10 @@ exports.update = async (req, res) => {
           if (!item)
             return res
               .status(404)
-              .send({ status: false, message: "แก้ไขข้อมูลชื่อสต็อกไม่สำเร็จ1" });
+              .send({ status: false, message: "แก้ไขรายการเคลื่อนไหวสต็อกไม่สำเร็จ1" });
           return res
             .status(200)
-            .send({ status: true, message: "แก้ไขข้อมูลชื่อสต็อกสำเร็จ" });
+            .send({ status: true, message: "แก้ไขรายการเคลื่อนไหวสต็อกสำเร็จ" });
         })
         .catch((err) => {
           console.log(err);
@@ -110,10 +111,10 @@ exports.update = async (req, res) => {
           if (!item)
             return res
               .status(404)
-              .send({ status: false, message: "แก้ไขข้อมูลชื่อสต็อกไม่สำเร็จ2" });
+              .send({ status: false, message: "แก้ไขรายการเคลื่อนไหวสต็อกไม่สำเร็จ2" });
           return res
             .status(200)
-            .send({ status: true, message: "แก้ไขข้อมูลชื่อสต็อกสำเร็จ" });
+            .send({ status: true, message: "แก้ไขรายการเคลื่อนไหวสต็อกสำเร็จ" });
         })
         .catch((err) => {
           console.log(err);
@@ -135,12 +136,12 @@ exports.delete = async (req, res) => {
         if (!item)
           return res
             .status(404)
-            .send({ message: "ไม่สามารถลบข้อมูลชื่อสต็อกนี้ได้" });
-        return res.status(200).send({ message: "ลบข้อมูลชื่อสต็อกสำเร็จ" });
+            .send({ message: "ไม่สามารถลบรายการเคลื่อนไหวสต็อกนี้ได้" });
+        return res.status(200).send({ message: "ลบรายการเคลื่อนไหวสต็อกสำเร็จ" });
       })
       .catch((err) => {
         res.status(500).send({
-          message: "ไม่สามารถลบข้อมูลชื่อสต็อกนี้ได้",
+          message: "ไม่สามารถลบรายการเคลื่อนไหวสต็อกนี้ได้",
           status: false,
         });
       });
@@ -149,7 +150,7 @@ exports.delete = async (req, res) => {
   }
 };
 
-exports.holdOrder = async (req, res) => {
+/*exports.holdOrder = async (req, res) => {
   try {
 
     const requestOrder = await StockOrders.findOne({ _id: req.params.id });
@@ -187,7 +188,7 @@ exports.holdOrder = async (req, res) => {
       requestOrder.save();
       return res.status(200).send({
         status: true,
-        message: "ส่งคำขอรายการสต็อกสำเร็จ",
+        message: "ส่งคำขอรายการเคลื่อนไหวสต็อกสำเร็จ",
         data: requestOrder,
       });
     } else {
@@ -196,8 +197,8 @@ exports.holdOrder = async (req, res) => {
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
-};
-exports.holdOrderById = async (req, res) => {
+};*/
+/*exports.holdOrderById = async (req, res) => {
   let a = req.params.oid
 
   try {
@@ -243,7 +244,7 @@ exports.holdOrderById = async (req, res) => {
       requestOrder.save();
       return res.status(200).send({
         status: true,
-        message: "ส่งคำขอรายการสต็อกสำเร็จ",
+        message: "ส่งคำขอรายการเคลื่อนไหวสต็อกสำเร็จ",
         data: requestOrder,
       });
     } else {
@@ -252,9 +253,9 @@ exports.holdOrderById = async (req, res) => {
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
-};
+};*/
 
-exports.comfirm = async (req, res) => {
+/*exports.comfirm = async (req, res) => {
   try {
 
     const confirmStock = await StockOrders.findOne({ _id: req.params.id });
@@ -279,7 +280,7 @@ exports.comfirm = async (req, res) => {
           //-- ติดจอง
 
           /*  confirmStock.reserved_qty += item.qty;
-            confirmStock.balance -= item.qty;*/
+            //confirmStock.balance -= item.qty;
 
           break;
         case "encash":
@@ -291,7 +292,7 @@ exports.comfirm = async (req, res) => {
       confirmStock.save();
       return res.status(200).send({
         status: true,
-        message: "อนุมัติรายการสต็อกสำเร็จ: " + item.item_status + item.qty,
+        message: "อนุมัติรายการเคลื่อนไหวสต็อกสำเร็จ: " + item.item_status + item.qty,
         data: confirmStock,
       });
     } else {
@@ -300,54 +301,53 @@ exports.comfirm = async (req, res) => {
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
-};
-
-exports.cancel = async (req, res) => {
+};*/
+/*exports.cancel = async (req, res) => {
   try {
     const rejectOrder = await StockOrders.findOne({ _id: req.params.id });
     if (rejectOrder) {
       /* rejectOrder.transactions.pop({
          //timestamp: Date.now(),
-       });*/
+       });
 
-      rejectOrder.transactions.push({
-        ...req.body,
-        timestamp: Date.now(),
-        approver_user: "mock_admin",
-        order_status: "rejected", //--  admin ไม่อนุมัติ
-        remark: req.body.remark,
-      });
+rejectOrder.transactions.push({
+  ...req.body,
+  timestamp: Date.now(),
+  approver_user: "mock_admin",
+  order_status: "rejected", //--  admin ไม่อนุมัติ
+  remark: req.body.remark,
+});
 
-      //-- คำนวณยอดคงเหลือหลังอนุมัติยอดสต็อก
-      const item = req.body.detail
+//-- คำนวณยอดคงเหลือหลังอนุมัติยอดสต็อก
+const item = req.body.detail
 
-      switch (item["item_status"]) {
-        case "income":
-          //-- รับเข้าสต๊อก
-          //rejectOrder.balance += item.qty;
-          break;
-        case "reserved":
-          //-- คืนของเข้าสต็อก
-          rejectOrder.reserved_qty -= item.qty;
-          rejectOrder.balance += item.qty;
+switch (item["item_status"]) {
+  case "income":
+    //-- รับเข้าสต๊อก
+    //rejectOrder.balance += item.qty;
+    break;
+  case "reserved":
+    //-- คืนของเข้าสต็อก
+    rejectOrder.reserved_qty -= item.qty;
+    rejectOrder.balance += item.qty;
 
-          break;
-        case "encash":
-          //-- จำหน่าย หรือ ส่งออกไปแล้ว
-          //rejectOrder.reserved_qty -= item.qty;
-          break;
-      }
+    break;
+  case "encash":
+    //-- จำหน่าย หรือ ส่งออกไปแล้ว
+    //rejectOrder.reserved_qty -= item.qty;
+    break;
+}
 
-      rejectOrder.save();
-      return res.status(200).send({
-        status: true,
-        message: "ยกเลิกคำขอสต็อกสำเร็จ",
-        data: rejectOrder,
-      });
+rejectOrder.save();
+return res.status(200).send({
+  status: true,
+  message: "ยกเลิกคำขอรายการเคลื่อนไหวสต็อกสำเร็จ",
+  data: rejectOrder,
+});
     } else {
-      return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
-    }
+  return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
+}
   } catch (err) {
-    return res.status(500).send({ message: "Internal Server Error" });
-  }
-};
+  return res.status(500).send({ message: "Internal Server Error" });
+}
+};*/

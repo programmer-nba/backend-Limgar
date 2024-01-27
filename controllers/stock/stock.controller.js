@@ -9,7 +9,7 @@ exports.create = async (req, res) => {
         .status(403)
         .send({ message: error.details[0].message, status: false });
     const stockName = await Stocks.findOne({
-      product_barcode_id: req.body.product_barcode_id,
+      product_barcode: req.body.product_barcode,
     });
     if (stockName)
       return res.status(401).send({
