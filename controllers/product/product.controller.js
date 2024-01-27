@@ -37,7 +37,7 @@ exports.create = async (req, res) => {
       //--hotfix initial first product's Price
       ...req.body,
       isHqAdminOnly: true,
-      //product_oid: product2.id,
+      product_oid: product2.id,
       branch_oid: "65aa1506f866895c9585e033",
       branchName: "HQ",
       amount: 1,
