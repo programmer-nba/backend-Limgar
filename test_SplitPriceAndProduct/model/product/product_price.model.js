@@ -5,7 +5,7 @@ const ProductPriceShema = new mongoose.Schema({
   product_oid: { type: String, required: true },
   product_price_oid: { type: String, required: false },
   product_barcode: { type: String, required: false },
-  product_name: { type: String, required: true },
+  product_name: { type: String, required: false },
   branch_oid: { type: String, required: false },
   branchName: { type: String, required: false },
   isHqAdminOnly: { type: Boolean, required: false },
@@ -32,8 +32,8 @@ const ProductsPrice = mongoose.model("product_price", ProductPriceShema);
 const validate = (data) => {
   const schema = Joi.object({
     product_oid: Joi.string().required().label("กรอกoidสินค้า"),
-    product_barcode: Joi.string().required().label("กรอกรหัสสินค้า"),
-    product_name: Joi.string().required().label("กรอกชื่อสินค้า"),
+    product_barcode: Joi.string().label("กรอกรหัสสินค้า"),
+    product_name: Joi.string().label("กรอกชื่อสินค้า"),
     branch_oid: Joi.string().label("กรอกรหัสสาขา"),
     branchName: Joi.string().label("กรอกชื่อสาขา"),
     //isHqAdminOnly: Joi.boolean().required().default(true),
