@@ -173,14 +173,16 @@ exports.update = async (req, res) => {
       return res.status(404).send({ status: false, message: "ส่งข้อมูลผิดพลาด" });
     const id = req.params.id;
     Products.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
-      .then((item) => {
+      .then(async (item) => {
         if (!item)
           return res
             .status(404)
             .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
+
+        const oneProduct = await this.getProductById(req, res);
         return res
           .status(200) //--hotfix
-          .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" + "product_id : " + id });
+          .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" + "product_id : " + id + "data :" + oneProduct });
       })
       .catch((err) => {
         console.log(err);

@@ -19,31 +19,30 @@ exports.create = async (req, res) => {
 
     /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
      const hashPassword = await bcrypt.hash(req.body.password, salt);*/
+    const newData = {
+      timestamp: Date.now(),
+      stock_order_status: "created",
+      stock_order_id: "0",
+      branch_oid: "65aa1506f866895c9585e033",
+      branchName: "HQ",
+      isHqAdminOnly: true,
+      product_oid: req.body.product_oid,
+      product_barcode: req.body.product_barcode,
+      product_name: req.body.product_name,
+      stock_category: "-",
+      item_status: "created",
+      qty: 0,
+      requester_user: "mock_Admin",
+      approver_user: "mock_Admin",
+      remark: req.body.remark || "-"
+    }
     await new Stocks({
       ...req.body,
       //--initial first transaction stock
       createdDatetime: Date.now(),
       balance: 0,
       reserved_qty: 0,
-      transactions: {
-        timestamp: Date.now(),
-        approver_user: "mock_Admin",
-        order_status: "created",
-        remark: "-",
-        detail: {
-          order_id: 0,
-          createdDatetime: Date.now(),
-          branch_id: req.body.branch_id,
-          branchName: req.body.branchName,
-          isHqAdminOnly: req.body.isHqAdminOnly,
-          product_barcode_id: req.body.product_barcode_id,
-          product_name: req.body.product_name,
-          stock_category: "",
-          item_status: "created",
-          qty: 0,
-          requester_user: "mock_Admin",
-        },
-      }
+      transactions: newData
     }).save();
     return res.status(200).send({ status: true, message: "ลงชื่อสต็อกสำเร็จ" });
 
@@ -216,7 +215,7 @@ exports.holdOrderById = async (req, res) => {
     if (requestOrder) {
       // let b = requestOrder.transactions
       // let a = requestOrder.transactions[b.length - 1].detail.order_id
-      debugger
+      //debugger
       requestOrder.transactions.push({
         ...req.body,
         timestamp: Date.now(),
