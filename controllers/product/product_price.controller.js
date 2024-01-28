@@ -35,7 +35,7 @@ exports.create = async (req, res) => {
     }).save();
 
     //--HotFix add product price oid
-    const product_price2 = await ProductsPrice.findOne({
+    /*const product_price2 = await ProductsPrice.findOne({
       product_id: req.body.product_id,
       amount: req.body.amount,
     });
@@ -43,7 +43,7 @@ exports.create = async (req, res) => {
       product_price2.id,
       { product_price_oid: product_price2.id },
       { useFindAndModify: false }
-    );
+    );*/
 
     return res.status(200).send({ status: true, message: "เพิ่มราคาสินค้าสำเร็จ" });
   } catch (err) {

@@ -11,7 +11,7 @@ const ProductPriceShema = new mongoose.Schema({
   isHqAdminOnly: { type: Boolean, required: false },
   amount: { type: Number, required: false },
   price: {
-    price_one: { type: Number, required: true },
+    price_one: { type: Number, required: false },
     price_two: { type: Number, required: false },
     price_three: { type: Number, required: false },
     price_four: { type: Number, required: false },
@@ -39,7 +39,7 @@ const validate = (data) => {
     //isHqAdminOnly: Joi.boolean().required().default(true),
     amount: Joi.number().required().default(1),
     price: {
-      price_one: Joi.number().required().default(0).label("กรอกราคาสินค้า1"),
+      price_one: Joi.number().default(0),
       price_two: Joi.number().required().default(0),
       price_three: Joi.number().required().default(0),
       price_four: Joi.number().required().default(0),
