@@ -86,11 +86,11 @@ exports.getProductAll = async (req, res) => {
     // _.forEach(priceLists, (value, key) => {
     _.forEach(product, (value, key) => {
       data_a = value
-      newProduct = value.product_barcode
+      newProduct = value.id
       _.forEach(priceLists, (value2, key2) => {
-        if (value2.product_barcode == newProduct) {
+        if (value2.product_oid == newProduct) {
           data_a.product_prices.push({
-            product_price_oid: value2.product_price_oid,
+            product_price_oid: value2.id,
             product_oid: value2.product_oid,
             amount: value2.amount,
             price: value2.price
