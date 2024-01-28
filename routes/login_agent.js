@@ -1,30 +1,36 @@
 const router = require("express").Router();
-const { Admins } = require("../model/user/admin.model");
+const { Agents } = require("../model/user/agent.model");
+const { Rows } = require("../model/user/row.model")
+//const row = require("../controllers/user/row.controller")
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 
 router.post("/", async (req, res) => {
   try {
-    let admin = await Admins.findOne({ admin_username: req.body.username });
-    if (!admin) {
+    let agent = await Agents.findOne({ username: req.body.username });
+    if (!agent) {
       // await checkEmployee(req, res);
       return res.status(404).send({ status: false, message: "User not found" });
       //console.log("ไม่ใช่แอดมิน");
     } else {
-      const validatePasswordAdmin = await bcrypt.compare(
+      const validatePasswordAgent = await bcrypt.compare(
         req.body.password,
-        admin.admin_password
+        agent.password
       );
-      if (!validatePasswordAdmin) {
+      if (!validatePasswordAgent) {
         return res
           .status(403)
           .send({ status: false, message: "Invalid password" });
       } else {
-        const token = admin.generateAuthToken();
+        const token = agent.generateAuthToken();
+        //--hotfix
+        //const row_user = await row.getRowById({ id: agent.row }, res);
+        const row_user = await Rows.findById(agent.row);
+
         const ResponesData = {
-          name: admin.admin_name,
-          username: admin.admin_username,
-          position: admin.admin_position,
+          name: agent.name,
+          username: agent.username,
+          position: row_user.name || "unknown",
         };
         return res.status(200).send({
           token: token,

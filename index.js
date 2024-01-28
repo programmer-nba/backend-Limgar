@@ -15,6 +15,7 @@ app.use(cors());
 
 // login
 app.use("/Limgar/login", require("./routes/login"));
+app.use("/Limgar/login_agent", require("./routes/login_agent"));
 
 // me
 app.use("/Limgar/me", require("./routes/me"));
