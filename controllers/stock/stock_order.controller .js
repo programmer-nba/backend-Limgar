@@ -30,7 +30,7 @@ exports.create = async (req, res) => {
       product_oid: req.body.product_oid,
       product_barcode: req.body.product_barcode,
       product_name: req.body.product_name,
-      stock_category: req.body.stock_category,
+      stock_category: req.body.stock_category || "-",
       item_status: req.body.item_status,
       qty: req.body.qty,
       requester_user: "mock_Admin",

@@ -79,70 +79,83 @@ exports.getProductAll = async (req, res) => {
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
 
-    //--HotFix obj test
+    //--HotFix prices obj test2
     let newData = [];
     let newProduct;
     let data_a;
-    _.forEach(priceLists, (value, key) => {
+    // _.forEach(priceLists, (value, key) => {
+    _.forEach(product, (value, key) => {
+      data_a = value
+      newProduct = value.product_barcode
+      _.forEach(priceLists, (value2, key2) => {
+        if (value2.product_barcode == newProduct) {
+          data_a.product_prices.push({
+            product_price_oid: value2.product_price_oid,
+            product_oid: value2.product_oid,
+            amount: value2.amount,
+            price: value2.price
+          });
 
-      if (value.branchName == searchByBranchName) {
+          /* data_a = {
+             product_oid: value.product_oid,
+             amount: value.amount,
+             product_price_oid: value.id,
+             price: value.price,
+             priceCOD: value.priceCOD,
+             product_barcode: value.product_barcode,
+             product_name: value.product_name,
+             branchName: value.branchName,
+             isExtraCOD: value.isExtraCOD,
+   
+             product_image: "",
+             product_barcode: "",
+             product_name: "",
+             product_category: "",
+             product_detail: "",
+             product_description: "",
+             product_cost: "",
+             product_net_weight: "",
+             product_pack: {
+               name: "ชิ้น/Pack",
+               amount: value.amount
+             }
+           }*/
 
-        data_a = {
-          product_oid: value.product_oid,
-          amount: value.amount,
-          product_price_oid: value.id,
-          price: value.price,
-          priceCOD: value.priceCOD,
-          product_barcode: value.product_barcode,
-          product_name: value.product_name,
-          branchName: value.branchName,
-          isExtraCOD: value.isExtraCOD,
 
-          product_image: "",
-          product_barcode: "",
-          product_name: "",
-          product_category: "",
-          product_detail: "",
-          product_description: "",
-          product_cost: "",
-          product_net_weight: "",
-          product_pack: {
-            name: "ชิ้น/Pack",
-            amount: value.amount
+
+          /*newProduct = _.find(product, (value2, key2) => {
+            if (value2.id == value.product_oid) {
+              return true
+            }
+          });
+          if (newProduct == undefined) {
+            //--hotFix unidentified productInfo
+            data_a.product_image = "-";
+            data_a.product_barcode = "-";
+            data_a.product_name = "-";
+            data_a.product_category = "-";
+            data_a.product_detail = "-";
+            data_a.product_description = "-";
+            data_a.product_cost = 0;
+            data_a.product_net_weight = 0;
           }
+          else {
+            //--hotFix unidentified productInfo
+            data_a.product_image = newProduct.product_image;
+            data_a.product_barcode = newProduct.product_barcode;
+            data_a.product_name = newProduct.product_name;
+            data_a.product_category = newProduct.product_category;
+            data_a.product_detail = newProduct.product_detail;
+            data_a.product_description = newProduct.product_description;
+            data_a.product_cost = newProduct.product_cost;
+            data_a.product_net_weight = newProduct.product_net_weight;
+          }*/
         }
+        //newData.push(data_a)
 
-        newProduct = _.find(product, (value2, key2) => {
-          if (value2.id == value.product_oid) {
-            return true
-          }
-        });
-        if (newProduct == undefined) {
-          //--hotFix unidentified productInfo
-          data_a.product_image = "-";
-          data_a.product_barcode = "-";
-          data_a.product_name = "-";
-          data_a.product_category = "-";
-          data_a.product_detail = "-";
-          data_a.product_description = "-";
-          data_a.product_cost = 0;
-          data_a.product_net_weight = 0;
-        }
-        else {
-          //--hotFix unidentified productInfo
-          data_a.product_image = newProduct.product_image;
-          data_a.product_barcode = newProduct.product_barcode;
-          data_a.product_name = newProduct.product_name;
-          data_a.product_category = newProduct.product_category;
-          data_a.product_detail = newProduct.product_detail;
-          data_a.product_description = newProduct.product_description;
-          data_a.product_cost = newProduct.product_cost;
-          data_a.product_net_weight = newProduct.product_net_weight;
-        }
-      }
+      })
       newData.push(data_a)
-    }
-    );
+    });
     return res
       .status(200)
       .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: newData });

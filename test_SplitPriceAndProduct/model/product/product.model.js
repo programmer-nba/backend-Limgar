@@ -10,7 +10,8 @@ const ProductShema = new mongoose.Schema({
   product_image: { type: String, required: false },
   product_cost: { type: Number, required: true },
   product_net_weight: { type: Number, required: true },
-  isOutStock: { type: Boolean, required: true }
+  isOutStock: { type: Boolean, required: true },
+  product_prices: []
 });
 
 const Products = mongoose.model("product", ProductShema);
