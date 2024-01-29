@@ -13,11 +13,11 @@ exports.create = async (req, res) => {
         .send({ message: error.details[0].message, status: false });
     const product_price = await ProductsPrice.findOne({
       branch_id: req.body.branch_id,
-      product_id: req.body.product_id,
+      product_oid: req.body.product_oid,
       amount: req.body.amount,
     });
     if (product_price)
-      if ((product_price.amount === req.body.amount) && (product_price.product_oid === req.body.product_oid) && (product_price.branch_oid === req.body.branch_oid)) {
+      if ((product_price.amount == req.body.amount) && (product_price.product_oid == req.body.product_oid)) {
         return res
           .status(401)
           .send({ status: false, message: "ราคาสินค้านี้มีในระบบแล้ว" });
