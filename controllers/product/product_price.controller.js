@@ -1,7 +1,8 @@
 //const { Products, validate } = require("../../model/product/product.model");
-//const { Products, validate } = require("../../test_SplitPriceAndProduct/model/product/product.model");
+const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
 //const { ProductsPrice, validate } = require("../../model/product/product_price.model")
-const { ProductsPrice, validate } = require("../../test_SplitPriceAndProduct/model/product/product_price.model")
+const { ProductsPrice, validate } = require("../../test_SplitPriceAndProduct/model/product/product_price.model");
+var _ = require("lodash");
 
 exports.create = async (req, res) => {
   try {
@@ -65,8 +66,7 @@ exports.getProductPriceAll = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
-exports.getProductPriceById = async (req, res) => {
+/*exports.getProductPriceByID = async (req, res) => {
   try {
     const id = req.params.id;
     const product = await ProductsPrice.findById(id);
@@ -77,6 +77,34 @@ exports.getProductPriceById = async (req, res) => {
     return res
       .status(200)
       .send({ status: true, message: "ดึงข้อมูลราคาสินค้าสำเร็จ", data: product });
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};*/
+exports.getProductPriceByProduct_oid = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const product_one = await Products.findById(id);
+    const priceLists = await ProductsPrice.find({
+      product_oid: id
+    });
+    if (!product_one)
+      return res
+        .status(404)
+        .send({ status: false, message: "ดึงข้อมูลราคาสินค้าไม่สำเร็จ" });
+
+    //--HotFix prices obj test2 -----
+    _.forEach(priceLists, (value2, key2) => {
+      product_one.product_prices.push({
+        product_price_oid: value2.id,
+        product_oid: value2.product_oid,
+        amount: value2.amount,
+        price: value2.price
+      });
+    })
+    //--HotFix prices obj test2-------------
+    return res.status(200)
+      .send({ status: true, message: "ดึงข้อมูลราคาสินค้าสำเร็จ", data: product_one });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
