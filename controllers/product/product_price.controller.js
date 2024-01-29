@@ -178,7 +178,7 @@ exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
     ProductsPrice.findByIdAndDelete(id, { useFindAndModify: false })
-      .then((item) => {
+      .then(async (item) => {
         if (!item)
           return res.status(404).send({ message: "ไม่สามรถลบราคาสินค้านี้ได้" });
         return res.status(200).send({ message: "ลบข้อมูลราคาสินค้าสำเร็จ" });
