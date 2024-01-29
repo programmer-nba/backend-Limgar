@@ -45,8 +45,11 @@ exports.create = async (req, res) => {
       { product_price_oid: product_price2.id },
       { useFindAndModify: false }
     );*/
-
-    return res.status(200).send({ status: true, message: "เพิ่มราคาสินค้าสำเร็จ" });
+    const product_price_one = await ProductsPrice.findOne({
+      product_oid: req.body.product_oid,
+      amount: req.body.amount,
+    });
+    return res.status(200).send({ status: true, message: "เพิ่มราคาสินค้าสำเร็จ", data: product_price_one });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
