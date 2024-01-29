@@ -116,20 +116,55 @@ exports.update = async (req, res) => {
       return res.status(404).send({ status: false, message: "ส่งข้อมูลราคาสินค้าผิดพลาด" });
     const id = req.params.id;
     ProductsPrice.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
-      .then((item) => {
+      .then(async (item) => {
         if (!item)
-          return res
-            .status(404)
+          return res.status(404)
             .send({ status: false, message: "แก้ไขข้อมูลราคาสินค้าไม่สำเร็จ" });
-        return res
-          .status(200)
-          .send({ status: true, message: "แก้ไขข้อมูลราคาสินค้าสำเร็จ" });
+
+        //--hotfix send new update into response
+        const priceList_one = await ProductsPrice.findById(id);
+        return res.status(200)
+          .send({ status: true, message: "แก้ไขข้อมูลราคาสินค้าสำเร็จ", data: priceList_one });
       })
       .catch((err) => {
         console.log(err);
         return res
           .status(500)
           .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
+      });
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+exports.updateByProduct_oid = async (req, res) => {
+  try {
+    if (!req.body)
+      return res.status(404).send({ status: false, message: "ส่งข้อมูลราคาสินค้าผิดพลาด" });
+    const product_oid_search = req.params.id;
+    const product_amount_search = req.body.amount;
+
+    const result_price_list = await ProductsPrice.findOne({
+      product_oid: product_oid_search,
+      amount: product_amount_search
+    });
+
+    ProductsPrice.findByIdAndUpdate(result_price_list.id, req.body, { useFindAndModify: false })
+      .then(async (item) => {
+        if (!item)
+          return res.status(404)
+            .send({ status: false, message: "แก้ไขข้อมูลราคาสินค้าไม่สำเร็จ" });
+
+        //--hotfix send new update into response
+        const priceList_one = await ProductsPrice.findById(result_price_list.id);
+        return res.status(200)
+          .send({ status: true, message: "แก้ไขข้อมูลราคาสินค้าสำเร็จ", data: priceList_one });
+      })
+      .catch((err) => {
+        console.log(err);
+        return res
+          .status(500)
+          .send({ status: false, message: "มีบางอย่างผิดพลาด " + product_oid_search });
       });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
@@ -144,6 +179,37 @@ exports.delete = async (req, res) => {
         if (!item)
           return res.status(404).send({ message: "ไม่สามรถลบราคาสินค้านี้ได้" });
         return res.status(200).send({ message: "ลบข้อมูลราคาสินค้าสำเร็จ" });
+      })
+      .catch((err) => {
+        res.status(500).send({
+          message: "ไม่สามรถลบราคาสินค้านี้ได้",
+          status: false,
+        });
+      });
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+exports.deleteByProduct_oid = async (req, res) => {
+  try {
+    const product_oid_search = req.params.id;
+    const product_amount_search = req.body.amount;
+
+    const result_price_list = await ProductsPrice.findOne({
+      product_oid: product_oid_search,
+      amount: product_amount_search
+    });
+    ProductsPrice.findByIdAndDelete(result_price_list.id, { useFindAndModify: false })
+      .then(async (item) => {
+        if (!item)
+          return res.status(404).send({ message: "ไม่สามรถลบราคาสินค้านี้ได้" });
+
+        //--hotfix send new update into response
+        const priceLists = await ProductsPrice.find({
+          product_oid: product_oid_search
+        });
+        return res.status(200).send({ message: "ลบข้อมูลราคาสินค้าสำเร็จ", data: priceLists });
       })
       .catch((err) => {
         res.status(500).send({
