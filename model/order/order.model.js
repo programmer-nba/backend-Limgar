@@ -20,7 +20,7 @@ const OrderSchema = new mongoose.Schema({
    update_status: []*/
 
   timestamp: { type: Date, required: false, default: Date.now() },
-  order_id: { type: String, required: false },
+  order_id: { type: Number, required: false },
   branch_oid: { type: String, required: false },
   branchName: { type: String, required: false },
   isHqAdminOnly: { type: Boolean, required: false },
@@ -28,6 +28,7 @@ const OrderSchema = new mongoose.Schema({
   ref_docs_url: { type: String, required: false },
   products: [
     {
+      product_price_oid: { type: String, required: false },
       product_oid: { type: String, required: false },
       product_barcode: { type: String, required: false },
       product_name: { type: String, required: false },
@@ -60,24 +61,25 @@ const validate = (data) => {
     product_net_weight: Joi.number().required().default(0),
     minimim_alert_qty: Joi.number().default(0),*/
 
-    order_id: Joi.string().required().label("-"),
+    order_id: Joi.number().default(0),
     branch_oid: Joi.string().label("-"),
-    branchName: Joi.string().label("-"),
+    //branchName: Joi.string().label("-"),
     payment_type: Joi.string().default("-"),
     requester_user: Joi.string().label("-"),
     remark: Joi.string().default("-"),
     products: Joi.array().items(Joi.object({
-      product_oid: Joi.string().label("-"),
-      product_barcode: Joi.string().label("-"),
-      product_name: Joi.string().label("-"),
-      qty: Joi.number().default(0),
-      amount: Joi.number().default(0),
+      product_price_oid: Joi.string().label("-"),
+      //product_oid: Joi.string().label("-"),
+      //product_barcode: Joi.string().label("-"),
+      //product_name: Joi.string().label("-"),
+      //qty: Joi.number().default(0),
+      // amount: Joi.number().default(0),
     })),
     products_total: Joi.number().default(0),
-    agent_info: Joi.object({
-      name: Joi.string().label("-"),
-      level: Joi.string().label("-"),
-    }),
+    /* agent_info: Joi.object({
+       name: Joi.string().label("-"),
+       level: Joi.string().label("-"),
+     }),*/
   });
   return schema.validate(data);
 };

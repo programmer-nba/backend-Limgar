@@ -1,30 +1,51 @@
 const bcrypt = require("bcrypt");
 const { Orders, validate } = require("../../model/order/order.model");
+var _ = require("lodash");
 
 exports.create = async (req, res) => {
+  var run_order_id = 0;
   try {
     const { error } = validate(req.body);
     if (error)
       return res
         .status(403)
         .send({ message: error.details[0].message, status: false });
-    const orderCard = await Orders.findOne({
-      product_barcode_id: req.body.product_barcode_id,
-    });
-    if (orderCard)
+
+    //ค้นหาออเดอรซ้ำ
+    const orderlists = await Orders.find({});
+
+    /*if (orderCard)
       return res.status(401).send({
         status: false,
         message: "มีออเดอร์นี้ในระบบเเล้ว",
-      });
+      });*/
 
     /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
      const hashPassword = await bcrypt.hash(req.body.password, salt);*/
+
+    //รัน เลขออเดอร์
+
+    const orderCard = orderlists.slice(-1)[0]  //get lastest order
+
+    if (!orderCard) {
+      run_order_id = 0
+    } else {
+      run_order_id = orderCard.order_id + 1;
+    }
+
     await new Orders({
       ...req.body,
-
-
+      order_id: run_order_id,
+      agent_info: {
+        name: "mock_agent01", //mock
+        level: "dealerLv1"
+      },
     }).save();
-    return res.status(200).send({ status: true, message: "ลงออเดอร์สำเร็จ" });
+
+    const newOrderCard = await Orders.findOne({
+      order_id: run_order_id,
+    });
+    return res.status(200).send({ status: true, message: "ลงออเดอร์สำเร็จ", data: newOrderCard });
 
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
