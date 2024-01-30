@@ -26,16 +26,17 @@ const OrderSchema = new mongoose.Schema({
   isHqAdminOnly: { type: Boolean, required: false },
   payment_type: { type: String, required: false },
   ref_docs_url: { type: String, required: false },
-  products: [
-    {
+  packages: [{
+    count: { type: Number, required: false },
+    product_price_info: {
       product_price_oid: { type: String, required: false },
       product_oid: { type: String, required: false },
       product_barcode: { type: String, required: false },
       product_name: { type: String, required: false },
-      qty: { type: Number, required: false },
+      price: { type: Number, required: false },
       amount: { type: Number, required: false },
-    }
-  ],
+    },
+  }],
   products_total: { type: Number, required: false },
   agent_info: {
     name: { type: String, required: false },
@@ -50,7 +51,7 @@ const Orders = mongoose.model("orders", OrderSchema);
 
 const validate = (data) => {
   const schema = Joi.object({
-    timestamp: Joi.date().default(Date.now()),
+    //timestamp: Joi.date().default(Date.now()),
     /*product_barcode_id: Joi.string().required().label("ใส่บาร์โค๊ดสต๊อกสินค้า"),
     product_name: Joi.string().required().label("ใส่ชื่อสต๊อกสินค้า"),
     stock_category: Joi.string().required().label("ใส่แคตตาล็อกต๊อกสินค้า"),
@@ -61,21 +62,25 @@ const validate = (data) => {
     product_net_weight: Joi.number().required().default(0),
     minimim_alert_qty: Joi.number().default(0),*/
 
-    order_id: Joi.number().default(0),
-    branch_oid: Joi.string().label("-"),
+    //order_id: Joi.number().default(0),
+    // branch_oid: Joi.string().label("-"),
     //branchName: Joi.string().label("-"),
     payment_type: Joi.string().default("-"),
     requester_user: Joi.string().label("-"),
     remark: Joi.string().default("-"),
-    products: Joi.array().items(Joi.object({
-      product_price_oid: Joi.string().label("-"),
-      //product_oid: Joi.string().label("-"),
-      //product_barcode: Joi.string().label("-"),
-      //product_name: Joi.string().label("-"),
-      //qty: Joi.number().default(0),
-      // amount: Joi.number().default(0),
+    packages: Joi.array().items(Joi.object({
+      count: Joi.number().default(0),
+      product_price_info: Joi.object({
+        product_price_oid: Joi.string().label("-"),
+        //product_oid: Joi.string().label("-"),
+        //product_barcode: Joi.string().label("-"),
+        //product_name: Joi.string().label("-"),
+        //qty: Joi.number().default(0),
+        // amount: Joi.number().default(0),
+      }),
+
     })),
-    products_total: Joi.number().default(0),
+    //products_total: Joi.number().default(0),
     /* agent_info: Joi.object({
        name: Joi.string().label("-"),
        level: Joi.string().label("-"),

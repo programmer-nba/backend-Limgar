@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const { Orders, validate } = require("../../model/order/order.model");
+const { ProductsPrice } = require("../../test_SplitPriceAndProduct/model/product/product_price.model");
 var _ = require("lodash");
 
 exports.create = async (req, res) => {
@@ -11,8 +12,14 @@ exports.create = async (req, res) => {
         .status(403)
         .send({ message: error.details[0].message, status: false });
 
+
     //ค้นหาออเดอรซ้ำ
-    const orderlists = await Orders.find({});
+    //const orderlists = await Orders.find({})
+
+    let agent_level = "dealerLv1"  //สมมติว่า ส่งมาเป็น Lv1
+    //let agent_level = req.body.agent_info.level || "price_one"
+    const orderlists = await Orders.find().sort({ $natural: -1 }).limit(3); //The 1 will sort ascending (oldest to newest) and -1 will sort descending (newest to oldest.)
+
 
     /*if (orderCard)
       return res.status(401).send({
@@ -25,13 +32,47 @@ exports.create = async (req, res) => {
 
     //รัน เลขออเดอร์
 
-    const orderCard = orderlists.slice(-1)[0]  //get lastest order
+    //const orderCard = orderlists.slice(-1)[0]  //get lastest order desc
+    const orderCard = orderlists[0]  //get lastest order asc
 
     if (!orderCard) {
       run_order_id = 0
     } else {
       run_order_id = orderCard.order_id + 1;
     }
+
+    const product_orders = req.body.packages;
+    //--hotfix send new update into response
+    const newData = [];
+    let sum_total_price = 0;
+    const priceLists = await ProductsPrice.find();
+    _.forEach(product_orders, (val, key) => {
+      let a = val
+
+      let dealerLevel //set defalt
+      if (agent_level) {
+        dealerLevel = "price_one"  //สมมติว่า Lv1
+      }
+
+      _.forEach(priceLists, (value2, key2) => {
+        if (value2.id == a.product_price_info.product_price_oid) {
+          let newData2 = {
+            product_price_info: {
+              product_price_oid: value2.id,
+              product_oid: value2.product_oid,
+              amount: value2.amount,
+              price: value2.price[dealerLevel]
+            },
+            count: a.count
+          };
+
+          sum_total_price += newData2.product_price_info.price * newData2.count
+          newData.push(newData2);
+        }
+      })
+    })
+
+    //await ProductsPrice.findById(pricelists[].product_price_oid);
 
     await new Orders({
       ...req.body,
@@ -40,6 +81,12 @@ exports.create = async (req, res) => {
         name: "mock_agent01", //mock
         level: "dealerLv1"
       },
+      update_status: {
+        name: "รอตรวจสอบ",
+        timestamp: new Date().toISOString(),
+      },
+      products_total: sum_total_price,
+      packages: newData
     }).save();
 
     const newOrderCard = await Orders.findOne({
@@ -204,7 +251,7 @@ exports.holdOrder = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-exports.holdOrderById = async (req, res) => {
+/*exports.holdOrderById = async (req, res) => {
   let a = req.params.oid
 
   try {
@@ -259,9 +306,32 @@ exports.holdOrderById = async (req, res) => {
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
-};
+};*/
 
 exports.comfirm = async (req, res) => {
+  try {
+    const updateStatus = await Orders.findOne({ _id: req.params.id });
+    if (updateStatus) {
+      updateStatus.update_status.push({
+        name: "อนุมัติ",
+        approver_user: "mock_admin",
+        timestamp: Date.now(),
+      });
+      updateStatus.save();
+      return res.status(200).send({
+        status: true,
+        message: "อนุมัติออเดอร์สำเร็จ",
+        data: updateStatus,
+      });
+    } else {
+      return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
+    }
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+/*exports.comfirm = async (req, res) => {
   try {
 
     const confirmStock = await Orders.findOne({ _id: req.params.id });
@@ -286,28 +356,28 @@ exports.comfirm = async (req, res) => {
           //-- ติดจอง
 
           /*  confirmStock.reserved_qty += item.qty;
-            confirmStock.balance -= item.qty;*/
+            confirmStock.balance -= item.qty;
 
-          break;
+break;
         case "encash":
-          //-- จำหน่าย หรือ ส่งออกไปแล้ว
-          confirmStock.reserved_qty -= item.qty;
-          break;
+//-- จำหน่าย หรือ ส่งออกไปแล้ว
+confirmStock.reserved_qty -= item.qty;
+break;
       }
 
-      confirmStock.save();
-      return res.status(200).send({
-        status: true,
-        message: "อนุมัติรายการสต็อกสำเร็จ: " + item.item_status + item.qty,
-        data: confirmStock,
-      });
+confirmStock.save();
+return res.status(200).send({
+  status: true,
+  message: "อนุมัติรายการสต็อกสำเร็จ: " + item.item_status + item.qty,
+  data: confirmStock,
+});
     } else {
-      return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
-    }
+  return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
+}
   } catch (err) {
-    return res.status(500).send({ message: "Internal Server Error" });
-  }
-};
+  return res.status(500).send({ message: "Internal Server Error" });
+}
+};*/
 
 exports.cancel = async (req, res) => {
   try {
