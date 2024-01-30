@@ -5,6 +5,7 @@ const StockSchema = new mongoose.Schema({
   timestamp: { type: Date, required: false, default: Date.now() },
   createdDatetime: { type: Date, required: false },
   approver_user: { type: String, required: false },
+  product_oid: { type: String, required: true },
   product_barcode: { type: String, required: true },
   product_name: { type: String, required: true },
   stock_category: { type: String, required: false },
@@ -25,6 +26,7 @@ const validate = (data) => {
   const schema = Joi.object({
     timestamp: Joi.date().default(Date.now()),
     approver_user: Joi.string().required().label("ใส่ชื่อผู้สร้างสต๊อกสินค้า"),
+    product_oid: Joi.string().required().label("ใส่oidสินค้า"),
     product_barcode: Joi.string().required().label("ใส่บาร์โค๊ดสต๊อกสินค้า"),
     product_name: Joi.string().required().label("ใส่ชื่อสต๊อกสินค้า"),
     stock_category: Joi.string().required().label("ใส่แคตตาล็อกต๊อกสินค้า"),

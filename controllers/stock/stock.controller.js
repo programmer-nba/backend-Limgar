@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const { Stocks, validate } = require("../../model/stock/stock.model");
+const stock_order = require("../../controllers/stock/stock_order.controller ");
 
 exports.create = async (req, res) => {
   try {
@@ -19,22 +20,31 @@ exports.create = async (req, res) => {
 
     /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
      const hashPassword = await bcrypt.hash(req.body.password, salt);*/
-    const newData = {
-      timestamp: Date.now(),
+    /* const newData = {
+       timestamp: Date.now(),
+       stock_order_status: "created",
+       stock_order_id: "0",
+       branch_oid: "65aa1506f866895c9585e033",
+       branchName: "HQ",
+       isHqAdminOnly: true,
+       product_oid: req.body.product_oid,
+       product_barcode: req.body.product_barcode,
+       product_name: req.body.product_name,
+       stock_category: "-",
+       item_status: "created",
+       qty: 0,
+       requester_user: "mock_Admin",
+       approver_user: "mock_Admin",
+       remark: req.body.remark || "-"
+     }*/
+
+    const newOrder = {
+      timestamp: new Date().toISOString(),
       stock_order_status: "created",
-      stock_order_id: "0",
-      branch_oid: "65aa1506f866895c9585e033",
-      branchName: "HQ",
-      isHqAdminOnly: true,
-      product_oid: req.body.product_oid,
-      product_barcode: req.body.product_barcode,
-      product_name: req.body.product_name,
-      stock_category: "-",
-      item_status: "created",
-      qty: 0,
       requester_user: "mock_Admin",
       approver_user: "mock_Admin",
-      remark: req.body.remark || "-"
+      remark: req.body.remark || "-",
+      detail: {}
     }
     await new Stocks({
       ...req.body,
@@ -42,9 +52,9 @@ exports.create = async (req, res) => {
       createdDatetime: Date.now(),
       balance: 0,
       reserved_qty: 0,
-      transactions: newData
+      transactions: newOrder
     }).save();
-    return res.status(200).send({ status: true, message: "ลงชื่อสต็อกสำเร็จ" });
+    return res.status(200).send({ status: true, message: "ลงรายการชื่อสต็อกสำเร็จ" });
 
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
@@ -157,17 +167,34 @@ exports.delete = async (req, res) => {
 
 exports.holdOrder = async (req, res) => {
   try {
+    const request_qty = req.body.detail.qty
+    const stockCard = await Stocks.findOne({ _id: req.params.id });
 
-    const requestOrder = await Stocks.findOne({ _id: req.params.id });
-    if (requestOrder) {
-      requestOrder.transactions.push({
-        ...req.body,
-        timestamp: Date.now(),
-        approver_user: "mock_admin",
-        order_status: "waiting", //-- รอ admin อนุมัติ
-        remark: req.body.remark,
-      });
+    //รีเควสของเกินคลัง ดีดออก
+    if (stockCard) {
 
+      const newOrder = {
+        timestamp: new Date().toISOString(),
+        stock_order_status: "waiting",
+        requester_user: "mock_Admin",
+        approver_user: "mock_Admin",
+        remark: req.body.remark || "-",
+        detail: req.body.detail || {}
+      }
+      /* requestOrder.transactions.push({
+         ...req.body,
+         timestamp: Date.now(),
+         approver_user: "mock_admin",
+         stock_order_status: "waiting", //-- รอ admin อนุมัติ
+         remark: req.body.remark,
+         detail: req.body
+       });*/
+
+      stockCard.transactions.push(newOrder);
+
+      //สมมติว่าเป็นbody
+      /* const mock_order = { body: req.body.detail }
+       await stock_order.create(req);*/
       //-- คำนวณยอดคงเหลือหลังขอยั๊ก สินค้าในสต็อก
       const item = req.body.detail
 
@@ -179,8 +206,8 @@ exports.holdOrder = async (req, res) => {
         case "reserved":
           //-- ติดจอง
 
-          requestOrder.reserved_qty += item.qty;
-          requestOrder.balance -= item.qty;
+          stockCard.reserved_qty += item.qty;
+          stockCard.balance -= item.qty;
 
           break;
         case "encash":
@@ -190,11 +217,11 @@ exports.holdOrder = async (req, res) => {
         //default: ;
       }
 
-      requestOrder.save();
+      stockCard.save();
       return res.status(200).send({
         status: true,
         message: "ส่งคำขอรายการสต็อกสำเร็จ",
-        data: requestOrder,
+        data: stockCard,
       });
     } else {
       return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
@@ -265,13 +292,23 @@ exports.comfirm = async (req, res) => {
 
     const confirmStock = await Stocks.findOne({ _id: req.params.id });
     if (confirmStock) {
-      confirmStock.transactions.push({
-        ...req.body,
-        timestamp: Date.now(),
-        approver_user: "mock_admin",
-        order_status: "approved", //--  admin อนุมัติ
-        remark: req.body.remark,
-      });
+      const newOrder = {
+        timestamp: new Date().toISOString(),
+        stock_order_status: "approved", //adminอนุมัติ
+        requester_user: "mock_Admin",
+        approver_user: "mock_Admin",
+        remark: req.body.remark || "-",
+        detail: req.body.detail || {}
+      }
+
+      /* confirmStock.transactions.push({
+         ...req.body,
+         timestamp: Date.now(),
+         approver_user: "mock_admin",
+         order_status: "approved", //--  admin อนุมัติ
+         remark: req.body.remark,
+       });*/
+      confirmStock.transactions.push(newOrder)
 
       //-- คำนวณยอดคงเหลือหลังอนุมัติยอดสต็อก
       const item = req.body.detail

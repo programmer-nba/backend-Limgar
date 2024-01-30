@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const { StockOrders, validate } = require("../../model/stock/stock_order.model");
+//const { Stocks, validate2 } = require("../../model/stock/stock.model");
 
 exports.create = async (req, res) => {
   try {
@@ -23,22 +24,23 @@ exports.create = async (req, res) => {
     await new StockOrders({
       ...req.body,
       timestamp: Date.now(),
-      stock_order_id: req.body.stock_order_id,
+      // stock_order_id: req.body.stock_order_id,
       branch_oid: "65aa1506f866895c9585e033",
       branchName: "HQ",
       isHqAdminOnly: true,
-      product_oid: req.body.product_oid,
-      product_barcode: req.body.product_barcode,
-      product_name: req.body.product_name,
-      stock_category: req.body.stock_category || "-",
-      item_status: req.body.item_status,
-      qty: req.body.qty,
-      requester_user: "mock_Admin",
-      approver_user: "mock_Admin",
-      stock_order_status: req.body.stock_order_status,
-      remark: req.body.remark || "-",
+      // product_oid: req.body.product_oid,
+      //  product_barcode: req.body.product_barcode,
+      // product_name: req.body.product_name,
+      // stock_category: req.body.stock_category || "-",
+      // item_status: req.body.item_status,
+      // qty: req.body.qty,
+      // requester_user: req.body.requester_user,
+      approver_user: req.body.approver_user || "",
+      // stock_order_status: req.body.stock_order_status,
+      //remark: req.body.remark || "-",
 
     }).save();
+
     return res.status(200).send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ" });
 
   } catch (err) {
@@ -61,7 +63,7 @@ exports.getStockOrderAll = async (req, res) => {
   }
 };
 
-exports.getStockById = async (req, res) => {
+exports.getStockByProduct_oid = async (req, res) => {
   try {
     const id = req.params.id;
     const agent = await StockOrders.findById(id);
