@@ -365,6 +365,7 @@ exports.comfirm = async (req, res) => {
 };
 
 exports.cancel = async (req, res) => {
+  //--เก่า รอแก้
   try {
     const rejectOrder = await Stocks.findOne({ _id: req.params.id });
     if (rejectOrder) {
