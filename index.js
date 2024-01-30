@@ -40,6 +40,9 @@ app.use("/Limgar/product_price", require("./routes/product/product_price"));
 app.use("/Limgar/stock", require("./routes/stock/stock"));
 app.use("/Limgar/stock_order", require("./routes/stock/stock_order"));
 
+//order
+app.use("/Limgar/order", require("./routes/order/order"));
+
 // Function
 app.use("/Limgar/function", require("./routes/more/function"));
 

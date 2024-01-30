@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const { Stocks, validate } = require("../../model/order/order.model");
+const { Orders, validate } = require("../../model/order/order.model");
 
 exports.create = async (req, res) => {
   try {
@@ -8,44 +8,23 @@ exports.create = async (req, res) => {
       return res
         .status(403)
         .send({ message: error.details[0].message, status: false });
-    const stockName = await Stocks.findOne({
+    const orderCard = await Orders.findOne({
       product_barcode_id: req.body.product_barcode_id,
     });
-    if (stockName)
+    if (orderCard)
       return res.status(401).send({
         status: false,
-        message: "มีชื่อสต็อกนี้ในระบบเเล้ว",
+        message: "มีออเดอร์นี้ในระบบเเล้ว",
       });
 
     /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
      const hashPassword = await bcrypt.hash(req.body.password, salt);*/
-    await new Stocks({
+    await new Orders({
       ...req.body,
-      //--initial first transaction stock
-      createdDatetime: Date.now(),
-      balance: 0,
-      reserved_qty: 0,
-      transactions: {
-        timestamp: Date.now(),
-        approver_user: "mock_Admin",
-        order_status: "created",
-        remark: "-",
-        detail: {
-          order_id: 0,
-          createdDatetime: Date.now(),
-          branch_id: req.body.branch_id,
-          branchName: req.body.branchName,
-          isHqAdminOnly: req.body.isHqAdminOnly,
-          product_barcode_id: req.body.product_barcode_id,
-          product_name: req.body.product_name,
-          stock_category: "",
-          item_status: "created",
-          qty: 0,
-          requester_user: "mock_Admin",
-        },
-      }
+
+
     }).save();
-    return res.status(200).send({ status: true, message: "ลงชื่อสต็อกสำเร็จ" });
+    return res.status(200).send({ status: true, message: "ลงออเดอร์สำเร็จ" });
 
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
@@ -54,14 +33,14 @@ exports.create = async (req, res) => {
 
 exports.getOrderAll = async (req, res) => {
   try {
-    const agent = await Stocks.find();
+    const agent = await Orders.find();
     if (!agent)
       return res
         .status(404)
-        .send({ status: false, message: "ดึงข้อมูลชื่อสต็อกไม่สำเร็จ" });
+        .send({ status: false, message: "ดึงข้อมูลออเดอร์ไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลชื่อสต็อกสำเร็จ", data: agent });
+      .send({ status: true, message: "ดึงข้อมูลออเดอร์สำเร็จ", data: agent });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -70,14 +49,14 @@ exports.getOrderAll = async (req, res) => {
 exports.getOrderById = async (req, res) => {
   try {
     const id = req.params.id;
-    const agent = await Stocks.findById(id);
+    const agent = await Orders.findById(id);
     if (!agent)
       return res
         .status(404)
-        .send({ status: false, message: "ดึงข้อมูลชื่อสต็อกไม่สำเร็จ" });
+        .send({ status: false, message: "ดึงข้อมูลออเดอร์ไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลชื่อสต็อกสำเร็จ", data: agent });
+      .send({ status: true, message: "ดึงข้อมูลออเดอร์สำเร็จ", data: agent });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -86,18 +65,18 @@ exports.getOrderById = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     if (!req.body)
-      return res.status(404).send({ status: false, message: "ส่งข้อมูลชื่อสต็อกผิดพลาด1" });
+      return res.status(404).send({ status: false, message: "ส่งข้อมูลออเดอร์ผิดพลาด1" });
     const id = req.params.id;
     if (!req.body.password) {
-      Stocks.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+      Orders.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
         .then((item) => {
           if (!item)
             return res
               .status(404)
-              .send({ status: false, message: "แก้ไขข้อมูลชื่อสต็อกไม่สำเร็จ1" });
+              .send({ status: false, message: "แก้ไขข้อมูลออเดอร์ไม่สำเร็จ1" });
           return res
             .status(200)
-            .send({ status: true, message: "แก้ไขข้อมูลชื่อสต็อกสำเร็จ" });
+            .send({ status: true, message: "แก้ไขข้อมูลออเดอร์สำเร็จ" });
         })
         .catch((err) => {
           console.log(err);
@@ -108,7 +87,7 @@ exports.update = async (req, res) => {
     } else {
       const salt = await bcrypt.genSalt(Number(process.env.SALT));
       const hashPassword = await bcrypt.hash(req.body.password, salt);
-      Stocks.findByIdAndUpdate(
+      Orders.findByIdAndUpdate(
         id,
         { ...req.body, password: hashPassword },
         { useFindAndModify: false }
@@ -117,10 +96,10 @@ exports.update = async (req, res) => {
           if (!item)
             return res
               .status(404)
-              .send({ status: false, message: "แก้ไขข้อมูลชื่อสต็อกไม่สำเร็จ2" });
+              .send({ status: false, message: "แก้ไขข้อมูลออเดอร์ไม่สำเร็จ2" });
           return res
             .status(200)
-            .send({ status: true, message: "แก้ไขข้อมูลชื่อสต็อกสำเร็จ" });
+            .send({ status: true, message: "แก้ไขข้อมูลออเดอร์สำเร็จ" });
         })
         .catch((err) => {
           console.log(err);
@@ -137,17 +116,17 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
-    Stocks.findByIdAndDelete(id, { useFindAndModify: false })
+    Orders.findByIdAndDelete(id, { useFindAndModify: false })
       .then((item) => {
         if (!item)
           return res
             .status(404)
-            .send({ message: "ไม่สามารถลบข้อมูลชื่อสต็อกนี้ได้" });
-        return res.status(200).send({ message: "ลบข้อมูลชื่อสต็อกสำเร็จ" });
+            .send({ message: "ไม่สามารถลบข้อมูลออเดอร์นี้ได้" });
+        return res.status(200).send({ message: "ลบข้อมูลออเดอร์สำเร็จ" });
       })
       .catch((err) => {
         res.status(500).send({
-          message: "ไม่สามารถลบข้อมูลชื่อสต็อกนี้ได้",
+          message: "ไม่สามารถลบข้อมูลออเดอร์นี้ได้",
           status: false,
         });
       });
@@ -159,7 +138,7 @@ exports.delete = async (req, res) => {
 exports.holdOrder = async (req, res) => {
   try {
 
-    const requestOrder = await Stocks.findOne({ _id: req.params.id });
+    const requestOrder = await Orders.findOne({ _id: req.params.id });
     if (requestOrder) {
       requestOrder.transactions.push({
         ...req.body,
@@ -209,7 +188,7 @@ exports.holdOrderById = async (req, res) => {
 
   try {
     let a = req.params.oid
-    const requestOrder = await Stocks.findOne({
+    const requestOrder = await Orders.findOne({
       _id: req.params.id,
     });
 
@@ -264,7 +243,7 @@ exports.holdOrderById = async (req, res) => {
 exports.comfirm = async (req, res) => {
   try {
 
-    const confirmStock = await Stocks.findOne({ _id: req.params.id });
+    const confirmStock = await Orders.findOne({ _id: req.params.id });
     if (confirmStock) {
       confirmStock.transactions.push({
         ...req.body,
@@ -311,7 +290,7 @@ exports.comfirm = async (req, res) => {
 
 exports.cancel = async (req, res) => {
   try {
-    const rejectOrder = await Stocks.findOne({ _id: req.params.id });
+    const rejectOrder = await Orders.findOne({ _id: req.params.id });
     if (rejectOrder) {
       /* rejectOrder.transactions.pop({
          //timestamp: Date.now(),

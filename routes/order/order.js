@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const order = require("../../controllers/order/order.controller");
 
-router.post("/register", order.create);
+router.post("/add", order.create);
 router.get("/", order.getOrderAll);
 router.get("/:id", order.getOrderById);
 router.put("/:id", order.update);
