@@ -315,7 +315,7 @@ exports.comfirm = async (req, res) => {
       updateStatus.update_status.push({
         name: "อนุมัติ",
         approver_user: "mock_admin",
-        timestamp: Date.now(),
+        timestamp: new Date().toISOString(),
       });
       updateStatus.save();
       return res.status(200).send({
