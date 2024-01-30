@@ -170,17 +170,20 @@ exports.holdOrder = async (req, res) => {
     const request_qty = req.body.detail.qty
     const stockCard = await Stocks.findOne({ _id: req.params.id });
 
-    //รีเควสของเกินคลัง ดีดออก
-    if (stockCard) {
+    const item = req.body.detail
+    const alert_qty = stockCard.minimim_alert_qty
 
-      const newOrder = {
-        timestamp: new Date().toISOString(),
-        stock_order_status: "waiting",
-        requester_user: "mock_Admin",
-        approver_user: "mock_Admin",
-        remark: req.body.remark || "-",
-        detail: req.body.detail || {}
-      }
+    const newOrder = {
+      timestamp: new Date().toISOString(),
+      stock_order_status: "waiting",
+      requester_user: "mock_Admin",
+      approver_user: "mock_Admin",
+      remark: req.body.remark || "-",
+      detail: req.body.detail || {}
+    }
+
+    //รีเควสของเกินคลัง ดีดออก
+    if (alert_qty < item.qty) {
       /* requestOrder.transactions.push({
          ...req.body,
          timestamp: Date.now(),
@@ -190,21 +193,24 @@ exports.holdOrder = async (req, res) => {
          detail: req.body
        });*/
 
-      stockCard.transactions.push(newOrder);
 
       //สมมติว่าเป็นbody
       /* const mock_order = { body: req.body.detail }
        await stock_order.create(req);*/
       //-- คำนวณยอดคงเหลือหลังขอยั๊ก สินค้าในสต็อก
-      const item = req.body.detail
 
       switch (item["item_status"]) {
         case "income":
           //-- รับเข้าสต๊อก
           //requestOrder.balance += item.qty;
+
+          stockCard.transactions.push(newOrder);
+
           break;
         case "reserved":
           //-- ติดจอง
+
+          stockCard.transactions.push(newOrder);
 
           stockCard.reserved_qty += item.qty;
           stockCard.balance -= item.qty;
@@ -213,6 +219,7 @@ exports.holdOrder = async (req, res) => {
         case "encash":
           //-- จำหน่าย หรือ ส่งออกไปแล้ว
           //requestOrder.reserved_qty -= item.qty;
+          stockCard.transactions.push(newOrder);
           break;
         //default: ;
       }
@@ -224,7 +231,7 @@ exports.holdOrder = async (req, res) => {
         data: stockCard,
       });
     } else {
-      return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
+      return res.status(403).send({ message: "เกิดข้อผิดพลาด", alert_qty: alert_qty });
     }
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
