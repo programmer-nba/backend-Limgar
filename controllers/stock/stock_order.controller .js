@@ -4,7 +4,8 @@ const { StockOrders, validate } = require("../../model/stock/stock_order.model")
 
 exports.create = async (req, res) => {
   try {
-    const { error } = validate(req.body);
+    let data = req.body.detail
+    const { error } = validate(data);
     if (error)
       return res
         .status(403)
@@ -21,8 +22,9 @@ exports.create = async (req, res) => {
 
     /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
      const hashPassword = await bcrypt.hash(req.body.password, salt);*/
+
     await new StockOrders({
-      ...req.body,
+      ...data,
       timestamp: Date.now(),
       // stock_order_id: req.body.stock_order_id,
       branch_oid: "65aa1506f866895c9585e033",

@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const { Stocks, validate } = require("../../model/stock/stock.model");
-const stock_order = require("../../controllers/stock/stock_order.controller ");
+//const stock_order = require("../../controllers/stock/stock_order.controller ");
+const { StockOrders } = require("../../model/stock/stock_order.model");
 
 exports.create = async (req, res) => {
   try {
@@ -165,78 +166,6 @@ exports.delete = async (req, res) => {
   }
 };
 
-exports.holdOrder = async (req, res) => {
-  try {
-    const request_qty = req.body.detail.qty
-    const stockCard = await Stocks.findOne({ _id: req.params.id });
-
-    const item = req.body.detail
-    const alert_qty = stockCard.minimim_alert_qty
-
-    const newOrder = {
-      timestamp: new Date().toISOString(),
-      stock_order_status: "waiting",
-      requester_user: "mock_Admin",
-      approver_user: "mock_Admin",
-      remark: req.body.remark || "-",
-      detail: req.body.detail || {}
-    }
-
-    //รีเควสของเกินคลัง ดีดออก
-    if (alert_qty < item.qty) {
-      /* requestOrder.transactions.push({
-         ...req.body,
-         timestamp: Date.now(),
-         approver_user: "mock_admin",
-         stock_order_status: "waiting", //-- รอ admin อนุมัติ
-         remark: req.body.remark,
-         detail: req.body
-       });*/
-
-
-      //สมมติว่าเป็นbody
-      /* const mock_order = { body: req.body.detail }
-       await stock_order.create(req);*/
-      //-- คำนวณยอดคงเหลือหลังขอยั๊ก สินค้าในสต็อก
-
-      switch (item["item_status"]) {
-        case "income":
-          //-- รับเข้าสต๊อก
-          //requestOrder.balance += item.qty;
-
-          stockCard.transactions.push(newOrder);
-
-          break;
-        case "reserved":
-          //-- ติดจอง
-
-          stockCard.transactions.push(newOrder);
-
-          stockCard.reserved_qty += item.qty;
-          stockCard.balance -= item.qty;
-
-          break;
-        case "encash":
-          //-- จำหน่าย หรือ ส่งออกไปแล้ว
-          //requestOrder.reserved_qty -= item.qty;
-          stockCard.transactions.push(newOrder);
-          break;
-        //default: ;
-      }
-
-      stockCard.save();
-      return res.status(200).send({
-        status: true,
-        message: "ส่งคำขอรายการสต็อกสำเร็จ",
-        data: stockCard,
-      });
-    } else {
-      return res.status(403).send({ message: "เกิดข้อผิดพลาด", alert_qty: alert_qty });
-    }
-  } catch (err) {
-    return res.status(500).send({ message: "Internal Server Error" });
-  }
-};
 exports.holdOrderById = async (req, res) => {
   let a = req.params.oid
 
@@ -294,59 +223,142 @@ exports.holdOrderById = async (req, res) => {
   }
 };
 
-exports.comfirm = async (req, res) => {
+exports.holdOrder = async (req, res) => {
   try {
-
-    const confirmStock = await Stocks.findOne({ _id: req.params.id });
-    if (confirmStock) {
+    const stockCard = await Stocks.findOne({ _id: req.params.id });
+    if (stockCard) {
       const newOrder = {
         timestamp: new Date().toISOString(),
-        stock_order_status: "approved", //adminอนุมัติ
+        stock_order_status: "waiting", //รอ admin
         requester_user: "mock_Admin",
         approver_user: "mock_Admin",
         remark: req.body.remark || "-",
         detail: req.body.detail || {}
       }
+      newOrder.detail.stock_order_status = "waiting", //รอ admin
 
-      /* confirmStock.transactions.push({
-         ...req.body,
-         timestamp: Date.now(),
-         approver_user: "mock_admin",
-         order_status: "approved", //--  admin อนุมัติ
-         remark: req.body.remark,
-       });*/
-      confirmStock.transactions.push(newOrder)
+        stockCard.transactions.push(newOrder)
+      stockCard.save();
 
-      //-- คำนวณยอดคงเหลือหลังอนุมัติยอดสต็อก
-      const item = req.body.detail
+      /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
+       const hashPassword = await bcrypt.hash(req.body.password, salt);*/
 
-      switch (item["item_status"]) {
-        case "income":
-          //-- รับเข้าสต๊อก
-          confirmStock.balance += item.qty;
-          break;
-        case "reserved":
-          //-- ติดจอง
+      //-- ส่งไปเก็บใน stock_orders
+      const item_log = req.body.detail
+      await new StockOrders({
+        ...item_log,
+        timestamp: Date.now(),
+        // stock_order_id: req.body.stock_order_id,
+        branch_oid: "65aa1506f866895c9585e033",
+        branchName: "HQ",
+        isHqAdminOnly: true,
+        approver_user: req.body.approver_user || "",
+      }).save();
 
-          /*  confirmStock.reserved_qty += item.qty;
-            confirmStock.balance -= item.qty;*/
-
-          break;
-        case "encash":
-          //-- จำหน่าย หรือ ส่งออกไปแล้ว
-          confirmStock.reserved_qty -= item.qty;
-          break;
-      }
-
-      confirmStock.save();
       return res.status(200).send({
         status: true,
-        message: "อนุมัติรายการสต็อกสำเร็จ: " + item.item_status + item.qty,
-        data: confirmStock,
+        message: " ส่งคำขอรายการสต็อกสำเร็จ : " + item_log.item_status + item_log.qty,
+        data: stockCard,
       });
     } else {
       return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
     }
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+exports.comfirm = async (req, res) => {
+  try {
+    //const request_qty = req.body.detail.qty
+    const confirm_stockCard = await Stocks.findOne({ _id: req.params.id });
+
+    const item = req.body.detail
+    const alert_qty = confirm_stockCard.minimim_alert_qty
+    const balance = confirm_stockCard.balance
+
+
+    const newOrder = {
+      timestamp: new Date().toISOString(),
+      stock_order_status: "approved", //adminอนุมัติ
+      requester_user: "mock_Admin",
+      approver_user: "mock_Admin",
+      remark: req.body.remark || "-",
+      detail: req.body.detail || {}
+    }
+    newOrder.detail.stock_order_status = "approved"  //ปรับ status adminอนุมัติ
+
+
+    //-- คำนวณยอดคงเหลือหลังขอยั๊ก สินค้าในสต็อก
+    let isPassCheck = false;
+    switch (item["item_status"]) {
+      case "income":
+        //-- รับเข้าสต๊อก
+        confirm_stockCard.balance += item.qty;
+
+        confirm_stockCard.transactions.push(newOrder);
+
+        confirm_stockCard.save();
+        isPassCheck = true;
+        break;
+      case "reserved":
+        //-- ติดจอง
+        //รีเควสของเกิน(สินค้าคงคลัง-สต็อกคงคลังขั้นต่ำ) ให้ดีดออก
+        if ((balance - alert_qty) > item.qty) {
+          //if (alert_qty < item.qty) {
+          confirm_stockCard.transactions.push(newOrder);
+
+          confirm_stockCard.reserved_qty += item.qty;
+          confirm_stockCard.balance -= item.qty;
+
+          confirm_stockCard.save();
+          isPassCheck = true;
+
+          break;
+        } else {
+          return res.status(403).send({ message: "เกิดข้อผิดพลาด reserved", alert_qty: alert_qty });
+        }
+
+      // break;
+      case "withdraw":
+        //-- จำหน่าย หรือ ส่งออกไปแล้ว
+        if ((balance - alert_qty) > item.qty) {
+          confirm_stockCard.reserved_qty -= item.qty;
+          confirm_stockCard.transactions.push(newOrder);
+
+          confirm_stockCard.save();
+          isPassCheck = true;
+
+          break;
+        } else {
+          return res.status(403).send({ message: "เกิดข้อผิดพลาด withdraw", alert_qty: alert_qty });
+        }
+      //default: ;
+    }
+    if (isPassCheck) {
+      //-- ส่งไปเก็บใน stock_orders
+      const item_log1 = req.body.detail
+      await new StockOrders({
+        ...item_log1,
+        timestamp: Date.now(),
+        // stock_order_id: req.body.stock_order_id,
+        branch_oid: "65aa1506f866895c9585e033",
+        branchName: "HQ",
+        isHqAdminOnly: true,
+        approver_user: req.body.approver_user || "",
+      }).save();
+
+      return res.status(200).send({
+        status: true,
+        message: "อนุมัติรายการสต็อกสำเร็จ ",
+        data: confirm_stockCard,
+      });
+    }
+
+    else {
+      return res.status(403).send({ message: "เกิดข้อผิดพลาด_3", alert_qty: alert_qty });
+    }
+
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }

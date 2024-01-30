@@ -66,7 +66,7 @@ const validate = (data) => {
     // branch_oid: Joi.string().label("-"),
     //branchName: Joi.string().label("-"),
     payment_type: Joi.string().default("-"),
-    requester_user: Joi.string().label("-"),
+    //requester_user: Joi.string().label("-"),
     remark: Joi.string().default("-"),
     packages: Joi.array().items(Joi.object({
       count: Joi.number().default(0),
