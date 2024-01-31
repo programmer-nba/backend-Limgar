@@ -23,6 +23,7 @@ exports.create = async (req, res) => {
     await new Agents({
       ...req.body,
       password: hashPassword,
+      agent_position: "agent",
       timestamp: Date.now(),
       active: false,
       status: {

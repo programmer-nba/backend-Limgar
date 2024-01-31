@@ -1,30 +1,52 @@
 const router = require("express").Router();
 require("dotenv").config();
-const {Admins} = require("../model/user/admin.model");
-const auth = require("../lib/auth");
+
+const { Admins } = require("../model/user/admin.model");
+const { Agents } = require("../model/user/agent.model");
+const auth = require("../lib/auth.me");
 
 router.post("/", auth, async (req, res) => {
-  const {decoded} = req;
+  const { decoded } = req;
   try {
     const id = decoded._id;
     if (decoded && decoded.row === "admin") {
-      Admins.findOne({_id: id})
-        .then((item) => {
-          return res.status(200).send({
-            name: item.admin_name,
-            username: item.admin_username,
-            level: "admin",
-            position: item.admin_position,
-          });
-        })
-        .catch(() => {
-          res.status(409).send({message: "มีบางอย่างผิดพลาด", status: false});
+      const admin = await Admins.findOne({ _id: id })
+      if (!admin) {
+        return res.status(400)
+          .send({ message: "มีบางอย่างผิดพลาด", status: false });
+      } else {
+        return res.status(200).send({
+          name: admin.admin_name,
+          username: admin.admin_username,
+          level: "admin",
+          position: admin.admin_position,
         });
-    } else {
-      console.log("Admins not found");
+      }
+    }
+    if (decoded && decoded.row === "agent") {
+      const id = decoded._id;
+      const agent = await Agents.findOne({ _id: id });
+      if (!agent) {
+        return res.status(400)
+          .send({ message: "Invalid Data", status: false });
+      } else {
+        return res.status(200)
+          .send({
+            name: agent.name,
+            username: agent.username,
+            level: "agent",
+            position: agent.agent_position,
+          });
+      }
+    }
+
+    else {
+      console.log("User not found.");
+      return res.status(404)
+        .send({ status: false, message: "User not found." });
     }
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 });
 

@@ -19,6 +19,7 @@ app.use("/Limgar/login", require("./routes/login"));
 
 // me
 app.use("/Limgar/me", require("./routes/me"));
+//app.use("/Limgar/me_agent", require("./routes/me_agent"));
 
 // user
 app.use("/Limgar/admin", require("./routes/user/admin"));

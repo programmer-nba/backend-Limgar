@@ -19,6 +19,7 @@ const AgentSchema = new mongoose.Schema({
   tel: { type: String, required: true },
   username: { type: String, required: true },
   password: { type: String, required: true },
+  agent_position: { type: String, required: true },
   address: { type: String, required: true },
   subdistrict: { type: String, required: true },
   district: { type: String, required: true },
@@ -55,13 +56,13 @@ AgentSchema.methods.generateAuthToken = function () {
   const token = jwt.sign(
     {
       _id: this._id,
-      name: this.admin_name,
-      position: this.admin_position,
-      row: "admin",
+      name: this.agent_name,
+      position: this.agent_position,
+      row: "agent",
     },
     process.env.JWTPRIVATEKEY,
     {
-      expiresIn: "4h",
+      expiresIn: "3h",
     }
   );
   return token;
