@@ -72,7 +72,6 @@ exports.create = async (req, res) => {
 
       let newData2 = {
         product_price_info: find_one,
-
         total_amount: 0,
         count: one_product.count,
         sum_product_price: 0
@@ -88,7 +87,7 @@ exports.create = async (req, res) => {
     })
 
     await new Orders({
-      ...req.body,
+      //...req.body,
       order_id: run_order_id,
       agent_info: {
         name: "mock_agent01", //mock

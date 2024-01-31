@@ -28,6 +28,8 @@ const OrderSchema = new mongoose.Schema({
   ref_docs_url: { type: String, required: false },
   packages: [{
     count: { type: Number, required: false },
+    total_amount: { type: Number, required: false },
+    sum_product_price: { type: Number, required: false },
     product_price_info: {
       product_price_oid: { type: String, required: false },
       product_oid: { type: String, required: false },
