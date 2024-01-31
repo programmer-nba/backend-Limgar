@@ -341,57 +341,13 @@ exports.comfirm = async (req, res) => {
   }
 };
 
-/*exports.comfirm = async (req, res) => {
-  try {
-
-    const confirmStock = await Orders.findOne({ _id: req.params.id });
-    if (confirmStock) {
-      confirmStock.transactions.push({
-        ...req.body,
-        timestamp: Date.now(),
-        approver_user: "mock_admin",
-        order_status: "approved", //--  admin อนุมัติ
-        remark: req.body.remark,
-      });
-
-      //-- คำนวณยอดคงเหลือหลังอนุมัติยอดสต็อก
-      const item = req.body.detail
-
-      switch (item["item_status"]) {
-        case "income":
-          //-- รับเข้าสต๊อก
-          confirmStock.balance += item.qty;
-          break;
-        case "reserved":
-          //-- ติดจอง
-
-          /*  confirmStock.reserved_qty += item.qty;
-            confirmStock.balance -= item.qty;
-
-break;
-        case "encash":
-//-- จำหน่าย หรือ ส่งออกไปแล้ว
-confirmStock.reserved_qty -= item.qty;
-break;
-      }
-
-confirmStock.save();
-return res.status(200).send({
-  status: true,
-  message: "อนุมัติรายการสต็อกสำเร็จ: " + item.item_status + item.qty,
-  data: confirmStock,
-});
-    } else {
-  return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
-}
-  } catch (err) {
-  return res.status(500).send({ message: "Internal Server Error" });
-}
-};*/
-
 exports.cancel = async (req, res) => {
+  //const fillter_status = "waiting" //--ฟิลเตอณเฉพาะ รออนุมัติ
   try {
-    const rejectOrder = await Orders.findOne({ _id: req.params.id });
+    const rejectOrder = await Orders.findOne({
+      _id: req.params.id,
+      //update_status: fillter_status
+    });
     if (rejectOrder) {
       /* rejectOrder.transactions.pop({
          //timestamp: Date.now(),
@@ -401,29 +357,9 @@ exports.cancel = async (req, res) => {
         ...req.body,
         timestamp: Date.now(),
         approver_user: "mock_admin",
-        order_status: "rejected", //--  admin ไม่อนุมัติ
+        name: "rejected", //--  admin ไม่อนุมัติ
         remark: req.body.remark,
       });
-
-      //-- คำนวณยอดคงเหลือหลังอนุมัติยอดสต็อก
-      const item = req.body.detail
-
-      switch (item["item_status"]) {
-        case "income":
-          //-- รับเข้าสต๊อก
-          //rejectOrder.balance += item.qty;
-          break;
-        case "reserved":
-          //-- คืนของเข้าสต็อก
-          rejectOrder.reserved_qty -= item.qty;
-          rejectOrder.balance += item.qty;
-
-          break;
-        case "encash":
-          //-- จำหน่าย หรือ ส่งออกไปแล้ว
-          //rejectOrder.reserved_qty -= item.qty;
-          break;
-      }
 
       rejectOrder.save();
       return res.status(200).send({

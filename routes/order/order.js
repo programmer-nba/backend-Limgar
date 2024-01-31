@@ -10,6 +10,6 @@ router.delete("/:id", order.delete);
 //router.put("/request/:id", order.holdOrder);//--
 //router.put("/request/:id/_:oid", order.holdOrderById);//--
 router.put("/confirm/:id", order.comfirm);
-//router.put("/cancel/:id", order.cancel);
+router.put("/cancel/:id", order.cancel);
 
 module.exports = router;
