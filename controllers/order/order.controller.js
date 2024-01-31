@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const { Orders, validate } = require("../../model/order/order.model");
+const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
 const { ProductsPrice } = require("../../test_SplitPriceAndProduct/model/product/product_price.model");
 var _ = require("lodash");
 
@@ -18,14 +19,7 @@ exports.create = async (req, res) => {
 
     let agent_level = "dealerLv1"  //สมมติว่า ส่งมาเป็น Lv1
     //let agent_level = req.body.agent_info.level || "price_one"
-    const orderlists = await Orders.find().sort({ $natural: -1 }).limit(3); //The 1 will sort ascending (oldest to newest) and -1 will sort descending (newest to oldest.)
-
-
-    /*if (orderCard)
-      return res.status(401).send({
-        status: false,
-        message: "มีออเดอร์นี้ในระบบเเล้ว",
-      });*/
+    const orderlists = await Orders.find().sort({ $natural: -1 }).limit(5); //The 1 will sort ascending (oldest to newest) and -1 will sort descending (newest to oldest.)
 
     /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
      const hashPassword = await bcrypt.hash(req.body.password, salt);*/
@@ -43,36 +37,55 @@ exports.create = async (req, res) => {
 
     const product_orders = req.body.packages;
     //--hotfix send new update into response
-    const newData = [];
+    let newData = [];
     let sum_total_price = 0;
+    let dealerLevel //set defalt
+    if (agent_level) {
+      dealerLevel = "price_one"  //สมมติว่า Lv1
+    }
+
     const priceLists = await ProductsPrice.find();
-    _.forEach(product_orders, (val, key) => {
-      let a = val
-
-      let dealerLevel //set defalt
-      if (agent_level) {
-        dealerLevel = "price_one"  //สมมติว่า Lv1
-      }
-
-      _.forEach(priceLists, (value2, key2) => {
-        if (value2.id == a.product_price_info.product_price_oid) {
-          let newData2 = {
-            product_price_info: {
-              product_price_oid: value2.id,
-              product_oid: value2.product_oid,
-              amount: value2.amount,
-              price: value2.price[dealerLevel]
-            },
-            count: a.count
-          };
-
-          sum_total_price += newData2.product_price_info.price * newData2.count
-          newData.push(newData2);
-        }
+    const product_name_lists = await Products.find();
+    let newPriceLists = _.reduce(priceLists, (result, val4, key4) => {
+      let c = val4
+      let b = _.find(product_name_lists, (product_name, index8) => {
+        return product_name.id = val4.id
       })
-    })
+      result[val4.id] = {
+        product_price_oid: val4.id,
+        product_oid: b.id,
+        product_name: b.product_name,
+        amount: val4.amount,
+        price: val4.price[dealerLevel]
+      }
+      return result;
+    }, {})
 
-    //await ProductsPrice.findById(pricelists[].product_price_oid);
+
+    _.forEach(product_orders, async (val, key) => {
+      let one_product = val
+
+      let one_in_order = one_product.product_price_info
+      let find_one = _.find(newPriceLists, (priceList, index2) => {
+        return priceList.product_price_oid == one_in_order.product_price_oid;
+      });
+
+      let newData2 = {
+        product_price_info: find_one,
+
+        total_amount: 0,
+        count: one_product.count,
+        sum_product_price: 0
+      };
+
+      newData2.total_amount = find_one.amount * one_product.count
+      newData2.sum_product_price = newData2.product_price_info.price * one_product.count
+
+      sum_total_price += newData2.product_price_info.price * newData2.count
+
+      newData.push(newData2);
+
+    })
 
     await new Orders({
       ...req.body,
@@ -103,11 +116,9 @@ exports.getOrderAll = async (req, res) => {
   try {
     const agent = await Orders.find();
     if (!agent)
-      return res
-        .status(404)
+      return res.status(404)
         .send({ status: false, message: "ดึงข้อมูลออเดอร์ไม่สำเร็จ" });
-    return res
-      .status(200)
+    return res.status(200)
       .send({ status: true, message: "ดึงข้อมูลออเดอร์สำเร็จ", data: agent });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });

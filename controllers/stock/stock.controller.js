@@ -366,8 +366,12 @@ exports.comfirm = async (req, res) => {
 
 exports.cancel = async (req, res) => {
   //--เก่า รอแก้
+  const fillter_status = "waiting" //--ฟิลเตอณเฉพาะ รออนุมัติ
   try {
-    const rejectOrder = await Stocks.findOne({ _id: req.params.id });
+    const rejectOrder = await Stocks.findOne({
+      _id: req.params.id,
+      stock_order_status: fillter_status
+    });
     if (rejectOrder) {
       /* rejectOrder.transactions.pop({
          //timestamp: Date.now(),
@@ -375,31 +379,28 @@ exports.cancel = async (req, res) => {
 
       rejectOrder.transactions.push({
         ...req.body,
-        timestamp: Date.now(),
+        timestamp: new Date().toISOString(),
         approver_user: "mock_admin",
-        order_status: "rejected", //--  admin ไม่อนุมัติ
-        remark: req.body.remark,
+        stock_order_status: "rejected", //--  admin ไม่อนุมัติ
+        remark: req.body.remark || "-",
+        detail: req.body.detail || {}
       });
+      newOrder.detail.stock_order_status = "rejected", //--  admin ไม่อนุมัติ
 
-      //-- คำนวณยอดคงเหลือหลังอนุมัติยอดสต็อก
-      const item = req.body.detail
+        stockCard.transactions.push(newOrder)
+      stockCard.save();
 
-      switch (item["item_status"]) {
-        case "income":
-          //-- รับเข้าสต๊อก
-          //rejectOrder.balance += item.qty;
-          break;
-        case "reserved":
-          //-- คืนของเข้าสต็อก
-          rejectOrder.reserved_qty -= item.qty;
-          rejectOrder.balance += item.qty;
-
-          break;
-        case "encash":
-          //-- จำหน่าย หรือ ส่งออกไปแล้ว
-          //rejectOrder.reserved_qty -= item.qty;
-          break;
-      }
+      //-- ส่งไปเก็บใน stock_orders
+      const item_log = req.body.detail
+      await new StockOrders({
+        ...item_log,
+        timestamp: Date.now(),
+        // stock_order_id: req.body.stock_order_id,
+        branch_oid: "65aa1506f866895c9585e033",
+        branchName: "HQ",
+        isHqAdminOnly: true,
+        approver_user: req.body.approver_user || "",
+      }).save();
 
       rejectOrder.save();
       return res.status(200).send({
