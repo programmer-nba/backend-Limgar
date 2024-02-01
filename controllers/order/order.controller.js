@@ -2,6 +2,9 @@ const bcrypt = require("bcrypt");
 const { Orders, validate } = require("../../model/order/order.model");
 const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
 const { ProductsPrice } = require("../../test_SplitPriceAndProduct/model/product/product_price.model");
+const { Agents } = require("../../model/user/agent.model");
+const { Rows } = require("../../model/user/row.model");
+
 var _ = require("lodash");
 
 exports.create = async (req, res) => {
@@ -17,7 +20,15 @@ exports.create = async (req, res) => {
     //ค้นหาออเดอรซ้ำ
     //const orderlists = await Orders.find({})
 
-    let agent_level = "dealerLv1"  //สมมติว่า ส่งมาเป็น Lv1
+    const agent_order_one = await Agents.findOne({ _id: req.decoded._id })
+
+    let agent_level = ""  //สมมติว่า ส่งมาเป็น Lv1
+    const agent_row = await Rows.findOne({ id: agent_order_one.row })
+
+    if (agent_row) {
+      agent_level = agent_row.level_name  //สมมติว่า ส่งมาเป็น Lv1
+    }
+
     //let agent_level = req.body.agent_info.level || "price_one"
     const orderlists = await Orders.find().sort({ $natural: -1 }).limit(5); //The 1 will sort ascending (oldest to newest) and -1 will sort descending (newest to oldest.)
 
@@ -39,9 +50,23 @@ exports.create = async (req, res) => {
     //--hotfix send new update into response
     let newData = [];
     let sum_total_price = 0;
-    let dealerLevel //set defalt
+
+    let dealerPrice //set defalt
     if (agent_level) {
-      dealerLevel = "price_one"  //สมมติว่า Lv1
+      switch (agent_level.level_name) {
+        case "agent_Lv1":
+          dealerPrice = "price_one"  //สมมติว่า Lv1
+          break;
+        case "agent_Lv2":
+          dealerPrice = "price_two"  //สมมติว่า Lv1
+          break;
+        case "agent_Lv3":
+          dealerPrice = "price_three"  //สมมติว่า Lv1
+          break;
+        default:
+          dealerPrice = "price_one"  //สมมติว่า Lv1
+      }
+
     }
 
     const priceLists = await ProductsPrice.find();
@@ -56,7 +81,7 @@ exports.create = async (req, res) => {
         product_oid: b.id,
         product_name: b.product_name,
         amount: val4.amount,
-        price: val4.price[dealerLevel]
+        price: val4.price[dealerPrice]
       }
       return result;
     }, {})

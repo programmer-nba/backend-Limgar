@@ -40,10 +40,7 @@ const OrderSchema = new mongoose.Schema({
     },
   }],
   products_total: { type: Number, required: false },
-  agent_info: {
-    name: { type: String, required: false },
-    level: { type: String, required: false },
-  },
+  agent_oid: { type: String, required: false },
   requester_user: { type: String, required: false },
   remark: { type: String, required: false },
   update_status: []
@@ -83,6 +80,7 @@ const validate = (data) => {
 
     })),
     //products_total: Joi.number().default(0),
+    //agent_oid: Joi.string().label("-"),
     /* agent_info: Joi.object({
        name: Joi.string().label("-"),
        level: Joi.string().label("-"),

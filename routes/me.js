@@ -36,6 +36,7 @@ router.post("/", auth, async (req, res) => {
             username: agent.username,
             level: "agent",
             position: agent.agent_position,
+            agent_oid: agent.id
           });
       }
     }
