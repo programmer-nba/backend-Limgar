@@ -114,7 +114,8 @@ exports.create = async (req, res) => {
     await new Orders({
       //...req.body,
       order_id: run_order_id,
-      agent_oid: agent_order_one._id,
+      //agent_oid: agent_order_one.id,
+      agent_oid: "65b5fc609ec0159bda19aff3",
       update_status: {
         name: "รอตรวจสอบ",
         timestamp: new Date().toISOString(),
