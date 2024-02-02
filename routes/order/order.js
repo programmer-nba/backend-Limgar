@@ -3,7 +3,7 @@ const order = require("../../controllers/order/order.controller");
 const auth_admin = require("../../lib/auth.admin");
 const auth_agent = require("../../lib/auth.agent");
 
-//router.post("/add", auth_agent, order.create);
+router.post("/add", auth_agent, order.create);
 //router.get("/", auth_admin, order.getOrderAll);
 //router.get("/:id", order.getOrderById);
 //router.get("/:id", order.getOrderByAgentOid);
@@ -11,7 +11,7 @@ const auth_agent = require("../../lib/auth.agent");
 //router.delete("/:id", auth_admin, order.delete);
 
 //--unlock auth 
-router.post("/add", order.create);
+//router.post("/add", order.create);
 router.get("/", order.getOrderAll);
 router.get("/:id", order.getOrderById);
 //router.get("/:id", order.getOrderByAgentOid);

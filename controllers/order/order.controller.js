@@ -23,7 +23,7 @@ exports.create = async (req, res) => {
     const agent_order_one = await Agents.findOne({ _id: req.decoded._id })
 
     let agent_level = ""  //สมมติว่า ส่งมาเป็น Lv1
-    const agent_row = await Rows.findOne({ id: agent_order_one.row })
+    const agent_row = await Rows.findOne({ _id: agent_order_one.row })
 
     if (agent_row) {
       agent_level = agent_row.level_name  //สมมติว่า ส่งมาเป็น Lv1
@@ -114,14 +114,12 @@ exports.create = async (req, res) => {
     await new Orders({
       //...req.body,
       order_id: run_order_id,
-      agent_info: {
-        name: "mock_agent01", //mock
-        level: "dealerLv1"
-      },
+      agent_oid: agent_order_one._id,
       update_status: {
         name: "รอตรวจสอบ",
         timestamp: new Date().toISOString(),
       },
+      payment_type: req.body.payment_type,
       products_total: sum_total_price,
       packages: newData
     }).save();

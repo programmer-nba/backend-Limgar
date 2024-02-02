@@ -2,7 +2,9 @@ const Joi = require("joi");
 const mongoose = require("mongoose");
 
 const RowSchema = new mongoose.Schema({
-    name: { type: String, require: true }
+    name: { type: String, require: true },
+    position: { type: String, require: false },
+    level_name: { type: String, require: false }
 });
 
 const Rows = mongoose.model("row", RowSchema);
