@@ -37,7 +37,7 @@ const validate = (data) => {
     branch_oid: Joi.string().label("กรอกรหัสสาขา"),
     branchName: Joi.string().label("กรอกชื่อสาขา"),
     //isHqAdminOnly: Joi.boolean().required().default(true),
-    //amount: Joi.number().label("กรอกจำนวนสินค้า/แพ็ค"),
+    amount: Joi.number().label("กรอกจำนวนสินค้า/แพ็ค"),
     price: {
       price_one: Joi.number().default(0),
       price_two: Joi.number().required().default(0),

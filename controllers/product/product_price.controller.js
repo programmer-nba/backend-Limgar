@@ -20,7 +20,7 @@ exports.create = async (req, res) => {
       if ((product_price.amount == req.body.amount) && (product_price.product_oid == req.body.product_oid)) {
         return res
           .status(401)
-          .send({ status: false, message: "ราคาสินค้านี้มีในระบบแล้ว" });
+          .send({ status: false, message: "แพ็กเกจราคาสินค้านี้มีในระบบแล้ว" });
       }
     //--HotFix branch HQ only
     await new ProductsPrice({
