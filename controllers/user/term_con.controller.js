@@ -57,6 +57,7 @@ exports.getAgentAll = async (req, res) => {
   }
 };
 */
+/*
 exports.getAgentById = async (req, res) => {
   try {
     const id = req.params.id;
@@ -72,19 +73,32 @@ exports.getAgentById = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
+*/
 exports.update = async (req, res) => {
-
+  const val_b = req.body.allow_term_con
   try {
-    if (!req.body)
-      return res.status(404).send({ status: false, message: "ส่งข้อมูลผิดพลาด" });
+    if (!val_b)
+      return res.status(404).send({ status: false, message: "ส่งข้อมูลผิดพลาด" }
+      );
 
     const id = req.params.id;
     const agent_me = req.decoded
     if (agent_me) {
-      const val_a = await Agents.findById(id)
-      val_a.allow_term_con = { step1: true, step2: true }
-      await val_a.save().then((item) => {
+      /*const val_a = await Agents.findByIdAndUpdate(id)
+      val_a.allow_term_con = {
+        step1: val_b.step1,
+        step2: val_b.step2
+      }
+      await val_a.save()*/
+
+      Agents.findByIdAndUpdate(id, {
+        allow_term_con: {
+          step1: val_b.step1,
+          step2: val_b.step2
+        }
+      },
+        { useFindAndModify: false }
+      ).then((item) => {
 
         if (!item)
           return res
@@ -124,22 +138,25 @@ exports.delete = async (req, res) => {
 };
 */
 exports.comfirm = async (req, res) => {
+
   try {
     //const a = req.
     const updateStatus = await Agents.findOne({ _id: req.params.id });
-    if (updateStatus) {
-      updateStatus.status.push({
-        name: "อนุมัติ",
-        timestamp: Date.now(),
-      });
+
+    if (updateStatus.allow_term_con.step1 == true && updateStatus.allow_term_con.step2 == true) {
+      updateStatus.active = true,
+        updateStatus.status.push({
+          name: "เปิดสถานะอนุญาติเข้าใช้งาน",
+          timestamp: Date.now(),
+        });
       updateStatus.save();
       return res.status(200).send({
         status: true,
-        message: "อนุมัติตัวแทนขายสำเร็จ",
+        message: "เปิดสถานะอนุญาติเข้าใช้งาน",
         data: updateStatus,
       });
     } else {
-      return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
+      return res.status(403).send({ message: "เกิดข้อผิดพลาดเงื่อนไขการยินยอมในข้อตกลง" });
     }
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
