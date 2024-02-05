@@ -1,4 +1,4 @@
-const {Channels} = require("../../model/more/channels.model");
+const { Channels } = require("../../model/more/channels.model");
 
 exports.create = async (req, res) => {
   try {
@@ -15,9 +15,9 @@ exports.create = async (req, res) => {
     }).save();
     return res
       .status(200)
-      .send({status: true, message: "เพิ่มช่องทางขายสำเร็จ"});
+      .send({ status: true, message: "เพิ่มช่องทางขายสำเร็จ" });
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
@@ -27,12 +27,12 @@ exports.getChannelAll = async (req, res) => {
     if (!channel)
       return res
         .status(404)
-        .send({status: false, message: "ดึงข้อมูลไม่สำเร็จ"});
+        .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
     return res
       .status(200)
-      .send({status: true, message: "ดึงข้อมูลสำเร็จ", data: channel});
+      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: channel });
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
@@ -43,49 +43,49 @@ exports.getChannelById = async (req, res) => {
     if (!channel)
       return res
         .status(404)
-        .send({status: false, message: "ดึงข้อมูลไม่สำเร็จ"});
+        .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
     return res
       .status(200)
-      .send({status: true, message: "ดึงข้อมูลสำเร็จ", data: channel});
+      .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: channel });
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
 exports.update = async (req, res) => {
   try {
     if (!req.body)
-      return res.status(404).send({status: false, message: "ส่งข้อมูลผิดพลาด"});
+      return res.status(404).send({ status: false, message: "ส่งข้อมูลผิดพลาด" });
     const id = req.params.id;
-    Channels.findByIdAndUpdate(id, req.body, {useFindAndModify: false})
+    Channels.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
       .then((item) => {
         if (!item)
           return res
             .status(404)
-            .send({status: false, message: "แก้ไขข้อมูลไม่สำเร็จ"});
+            .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
         return res
           .status(200)
-          .send({status: true, message: "แก้ไขข้อมูลสำเร็จ"});
+          .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
       })
       .catch((err) => {
         console.log(err);
         return res
           .status(500)
-          .send({status: false, message: "มีบางอย่างผิดพลาด" + id});
+          .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
       });
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
 exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
-    Channels.findByIdAndDelete(id, {useFindAndModify: false})
+    Channels.findByIdAndDelete(id, { useFindAndModify: false })
       .then((item) => {
         if (!item)
-          return res.status(404).send({message: "ไม่สามารถลบข้อมูลนี้ได้"});
-        return res.status(200).send({message: "ลบข้อมูลสำเร็จ"});
+          return res.status(404).send({ message: "ไม่สามารถลบข้อมูลนี้ได้" });
+        return res.status(200).send({ message: "ลบข้อมูลสำเร็จ" });
       })
       .catch((err) => {
         res.status(500).send({
@@ -94,6 +94,6 @@ exports.delete = async (req, res) => {
         });
       });
   } catch (err) {
-    return res.status(500).send({message: "Internal Server Error"});
+    return res.status(500).send({ message: "Internal Server Error" });
   }
 };

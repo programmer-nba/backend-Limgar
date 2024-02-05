@@ -45,6 +45,11 @@ const AgentSchema = new mongoose.Schema({
   },
   commissiom: { type: Number, required: false, default: 0 },
   timestamp: { type: Date, required: true },
+  allow_term_con: {
+    step1: { type: Boolean, require: false, default: false },
+    step2: { type: Boolean, require: false, default: false }
+
+  },
   active: { type: Boolean, require: true, default: false },
   status: [{
     name: { type: String, require: false },

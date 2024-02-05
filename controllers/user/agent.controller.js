@@ -26,6 +26,10 @@ exports.create = async (req, res) => {
       agent_position: "agent",
       timestamp: Date.now(),
       active: false,
+      allow_term_con: {
+        step1: false,
+        step2: false
+      },
       status: {
         name: "รอตรวจสอบ",
         timestamp: Date.now()
@@ -143,6 +147,7 @@ exports.delete = async (req, res) => {
 
 exports.comfirm = async (req, res) => {
   try {
+    //const a = req.
     const updateStatus = await Agents.findOne({ _id: req.params.id });
     if (updateStatus) {
       updateStatus.status.push({

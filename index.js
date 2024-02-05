@@ -17,6 +17,9 @@ app.use(cors());
 app.use("/Limgar/login", require("./routes/login"));
 //app.use("/Limgar/login_agent", require("./routes/login_agent"));
 
+//กดยอมรับ หนังสือยินยอม1,หนังสือยินยอม2
+app.use("/Limgar/term", require("./routes/user/term_con"));
+
 // me
 app.use("/Limgar/me", require("./routes/me"));
 //app.use("/Limgar/me_agent", require("./routes/me_agent"));
@@ -53,4 +56,4 @@ app.use("/Limgar/delete/image", require("./routes/more/deleteImage"));
 app.use("/Limgar/image/collection", require("./routes/more/uploadfile"));
 
 const port = process.env.PORT || 7474;
-app.listen(port, console.log(`Listening on port ${port}`));
+app.listen(port, console.log(`\nListening on port ${port}\n`));

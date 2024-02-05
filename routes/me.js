@@ -36,7 +36,12 @@ router.post("/", auth, async (req, res) => {
             username: agent.username,
             level: "agent",
             position: agent.agent_position,
-            agent_oid: agent.id
+            agent_oid: agent.id,
+            active: agent.active,
+            allow_term_con: {
+              step1: agent.allow_term_con.step1,
+              step2: agent.allow_term_con.step2
+            }
           });
       }
     }
