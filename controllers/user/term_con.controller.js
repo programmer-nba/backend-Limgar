@@ -91,10 +91,11 @@ exports.update = async (req, res) => {
       }
       await val_a.save()*/
 
+      //--force allow true
       Agents.findByIdAndUpdate(id, {
         allow_term_con: {
-          step1: val_b.step1,
-          step2: val_b.step2
+          step1: true,
+          step2: true
         }
       },
         { useFindAndModify: false }
