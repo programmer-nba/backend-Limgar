@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const stock_order = require("../../controllers/stock/stock_order.controller ");
+const auth_admin = require("../../lib/auth.admin");
 
 router.post("/add", stock_order.create);
 router.get("/", stock_order.getStockOrderAll);
@@ -9,7 +10,7 @@ router.get("/:id", stock_order.getStockByProduct_oid);
 
 //router.put("/request/:id", stock.holdOrder);//--
 //router.put("/request/:id/_:oid", stock.holdOrderById);//--
-//router.put("/confirm/:id", stock.comfirm);
+router.put("/confirm/:id", stock_order.comfirm);
 //router.put("/cancel/:id", stock.cancel);
 
 module.exports = router;

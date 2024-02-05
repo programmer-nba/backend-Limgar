@@ -4,7 +4,7 @@ const { StockOrders, validate } = require("../../model/stock/stock_order.model")
 
 exports.create = async (req, res) => {
   try {
-    let data = req.body.detail
+    let data = req.body
     const { error } = validate(data);
     if (error)
       return res
@@ -13,12 +13,12 @@ exports.create = async (req, res) => {
     /*const stockName = await StockOrders.find({
       id: req.body.id,
     });*/
-    const stockName = undefined;
-    if (stockName)
-      return res.status(401).send({
-        status: false,
-        message: "รายการบันทึกสต็อกนี้ มีในระบบเเล้ว",
-      });
+    /* const stockName = undefined;
+     if (stockName)
+       return res.status(401).send({
+         status: false,
+         message: "รายการบันทึกสต็อกนี้ มีในระบบเเล้ว",
+       });*/
 
     /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
      const hashPassword = await bcrypt.hash(req.body.password, salt);*/
@@ -28,8 +28,8 @@ exports.create = async (req, res) => {
       timestamp: Date.now(),
       // stock_order_id: req.body.stock_order_id,
       branch_oid: "65aa1506f866895c9585e033",
-      branchName: "HQ",
-      isHqAdminOnly: true,
+      //branchName: "HQ",
+      //isHqAdminOnly: true,
       // product_oid: req.body.product_oid,
       //  product_barcode: req.body.product_barcode,
       // product_name: req.body.product_name,
@@ -259,53 +259,46 @@ exports.delete = async (req, res) => {
   }
 };*/
 
-/*exports.comfirm = async (req, res) => {
+exports.comfirm = async (req, res) => {
   try {
+    const one_approve = "mock_agent";
 
-    const confirmStock = await StockOrders.findOne({ _id: req.params.id });
-    if (confirmStock) {
-      confirmStock.transactions.push({
-        ...req.body,
-        timestamp: Date.now(),
-        approver_user: "mock_admin",
-        order_status: "approved", //--  admin อนุมัติ
-        remark: req.body.remark,
-      });
+    //const confirmStock = await StockOrders.findOne({ _id: req.params.id });
+    //if (confirmStock) {
+    //--update contract document
+    //const { tax_id } = req.body
 
-      //-- คำนวณยอดคงเหลือหลังอนุมัติยอดสต็อก
-      const item = req.body.detail
-
-      switch (item["item_status"]) {
-        case "income":
-          //-- รับเข้าสต๊อก
-          confirmStock.balance += item.qty;
-          break;
-        case "reserved":
-          //-- ติดจอง
-
-          /*  confirmStock.reserved_qty += item.qty;
-            //confirmStock.balance -= item.qty;
-
-          break;
-        case "encash":
-          //-- จำหน่าย หรือ ส่งออกไปแล้ว
-          confirmStock.reserved_qty -= item.qty;
-          break;
-      }
-
-      confirmStock.save();
-      return res.status(200).send({
-        status: true,
-        message: "อนุมัติรายการเคลื่อนไหวสต็อกสำเร็จ: " + item.item_status + item.qty,
-        data: confirmStock,
-      });
-    } else {
-      return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
+    if (!confirmStock) {
+      return res.status(404)
+        .send({ status: false, message: "ส่งข้อมูลเดินสต็อก ผิดพลาด1" });
     }
+    const id = req.params.id;
+    //const a = tax_id.tax_id;
+    // รอแก้
+
+    StockOrders.findByIdAndUpdate(id, {
+      //...req.body
+      stock_order_status: "approved",
+      approver_user: one_approve || "-"
+    }
+      , { useFindAndModify: false })
+      .then((item) => {
+        if (!item)
+          return res.status(404)
+            .send({ status: false, message: "แก้ไขข้อมูลเดินสต็อก ไม่สำเร็จ1" });
+        return res.status(200)
+          .send({ status: true, message: "ยืนยัน ข้อมูลเดินสต็อกสำเร็จ" });
+      }).catch((err) => {
+        console.log(err);
+        return res.status(500)
+          .send({ status: false, message: "มีบางอย่างผิดพลาด :" + id });
+      });
+
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
-};*/
+};
+
 /*exports.cancel = async (req, res) => {
   try {
     const rejectOrder = await StockOrders.findOne({ _id: req.params.id });
