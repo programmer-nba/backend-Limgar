@@ -75,11 +75,11 @@ exports.getAgentById = async (req, res) => {
 };
 */
 exports.update = async (req, res) => {
-  const val_b = req.body.allow_term_con
+  //  const val_b = req.body.allow_term_con
   try {
-    if (!val_b)
-      return res.status(404).send({ status: false, message: "ส่งข้อมูลผิดพลาด" }
-      );
+    /*  if (!val_b)
+        return res.status(404).send({ status: false, message: "ส่งข้อมูลผิดพลาด" }
+        );*/
 
     const id = req.params.id;
     const agent_me = req.decoded
