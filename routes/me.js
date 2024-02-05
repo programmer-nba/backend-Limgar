@@ -41,6 +41,14 @@ router.post("/", auth, async (req, res) => {
             allow_term_con: {
               step1: agent.allow_term_con.step1,
               step2: agent.allow_term_con.step2
+            },
+            agent_info: {
+              address: agent.address,
+              subdistrict: agent.subdistrict,
+              district: agent.district,
+              province: agent.province,
+              postcode: agent.postcode,
+              person_id: agent.iden.number,
             }
           });
       }

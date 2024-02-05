@@ -56,4 +56,6 @@ app.use("/Limgar/delete/image", require("./routes/more/deleteImage"));
 app.use("/Limgar/image/collection", require("./routes/more/uploadfile"));
 
 const port = process.env.PORT || 7474;
-app.listen(port, console.log(`\nListening on port ${port}\n`));
+app.listen(port, () => {
+    console.log(`\n-- Listening on port ${port}  --\n`)
+});

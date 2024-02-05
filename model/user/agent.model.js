@@ -64,6 +64,7 @@ AgentSchema.methods.generateAuthToken = function () {
       name: this.agent_name,
       position: this.agent_position,
       row: "agent",
+      active: this.active,
     },
     process.env.JWTPRIVATEKEY,
     {

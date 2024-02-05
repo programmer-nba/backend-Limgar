@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
-const { Agents, validate } = require("../../model/user/agent.model");
-
+const { Agents } = require("../../model/user/agent.model");
+/*
 exports.create = async (req, res) => {
   try {
     const { error } = validate(req.body);
@@ -40,7 +40,8 @@ exports.create = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
+*/
+/*
 exports.getAgentAll = async (req, res) => {
   try {
     const agent = await Agents.find();
@@ -55,7 +56,7 @@ exports.getAgentAll = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
+*/
 exports.getAgentById = async (req, res) => {
   try {
     const id = req.params.id;
@@ -73,61 +74,33 @@ exports.getAgentById = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  try {
 
+  try {
     if (!req.body)
       return res.status(404).send({ status: false, message: "ส่งข้อมูลผิดพลาด" });
 
     const id = req.params.id;
-    if (!req.body.password) {
-      Agents.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
-        .then((item) => {
+    const agent_me = req.decoded
+    if (agent_me) {
+      const val_a = await Agents.findById(id)
+      val_a.allow_term_con = { step1: true, step2: true }
+      await val_a.save().then((item) => {
 
-          if (!item)
-            return res
-              .status(404)
-              .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
+        if (!item)
+          return res
+            .status(404)
+            .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
 
-          return res
-            .status(200)
-            .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
-        })
-
-        .catch((err) => {
-          console.log(err);
-          return res
-            .status(500)
-            .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
-        });
-    } else {
-      const salt = await bcrypt.genSalt(Number(process.env.SALT));
-      const hashPassword = await bcrypt.hash(req.body.password, salt);
-      Agents.findByIdAndUpdate(
-        id,
-        { ...req.body, password: hashPassword },
-        { useFindAndModify: false }
-      )
-        .then((item) => {
-          if (!item)
-            return res
-              .status(404)
-              .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
-          return res
-            .status(200)
-            .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
-        })
-        .catch((err) => {
-          console.log(err);
-          return res
-            .status(500)
-            .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
-        });
+        return res
+          .status(200)
+          .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
+      })
     }
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
+/*
 exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
@@ -149,7 +122,7 @@ exports.delete = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
+*/
 exports.comfirm = async (req, res) => {
   try {
     //const a = req.
@@ -172,7 +145,7 @@ exports.comfirm = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
+/*
 exports.cancel = async (req, res) => {
   try {
     const updateStatus = await Agents.findOne({ _id: req.params.id });
@@ -193,4 +166,4 @@ exports.cancel = async (req, res) => {
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
-};
+};*/
