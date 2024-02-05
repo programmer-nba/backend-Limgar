@@ -22,22 +22,22 @@ exports.create = async (req, res) => {
     //const salt = await bcrypt.genSalt(Number(process.env.SALT));
     //sconst hashPassword = await bcrypt.hash(req.body.password, salt);
 
-
-    const newOrder = {
-      timestamp: new Date().toISOString(),
-      stock_order_status: "created",
-      requester_user: "mock_Admin",
-      approver_user: "mock_Admin",
-      remark: req.body.remark || "-",
-      detail: {}
-    }
+    //const timestamp_1 = new Date().toISOString()
+    /*  const newOrder = {
+        timestamp: timestamp_1,
+        stock_order_status: "created",
+        requester_user: "mock_Admin",
+        approver_user: "mock_Admin",
+        remark: req.body.remark || "-",
+        //detail: {}
+      }*/
     await new Stocks({
       ...req.body,
       //--initial first transaction stock
       createdDatetime: Date.now(),
       balance: 0,
-      reserved_qty: 0,
-      transactions: newOrder
+      //reserved_qty: 0,
+      //transactions: newOrder
     }).save();
     return res.status(200).send({ status: true, message: "ลงรายการชื่อสต็อกสำเร็จ" });
 
@@ -48,14 +48,16 @@ exports.create = async (req, res) => {
 
 exports.getStockAll = async (req, res) => {
   try {
-    const agent = await Stocks.find();
-    if (!agent)
+    const stock_lists = await Stocks.find();
+    if (!stock_lists)
       return res
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลชื่อสต็อกไม่สำเร็จ" });
+
+
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลชื่อสต็อกสำเร็จ", data: agent });
+      .send({ status: true, message: "ดึงข้อมูลชื่อสต็อกสำเร็จ", data: stock_lists });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -255,89 +257,104 @@ exports.holdOrder = async (req, res) => {
 exports.comfirm = async (req, res) => {
   try {
     //const request_qty = req.body.detail.qty
-    const confirm_stockCard = await Stocks.findOne({ _id: req.params.id });
+    const wait_stockCard = await StockOrders.findById(req.params.id);
 
-    const item = req.body.detail
-    const alert_qty = confirm_stockCard.minimim_alert_qty
-    const balance = confirm_stockCard.balance
-
-
-    const newOrder = {
-      timestamp: new Date().toISOString(),
-      stock_order_status: "approved", //adminอนุมัติ
-      requester_user: "mock_Admin",
-      approver_user: "mock_Admin",
-      remark: req.body.remark || "-",
-      detail: req.body.detail || {}
-    }
-    newOrder.detail.stock_order_status = "approved"  //ปรับ status adminอนุมัติ
-
-
-    //-- คำนวณยอดคงเหลือหลังขอยั๊ก สินค้าในสต็อก
+    const item = req.body
+    // const alert_qty = confirm_stockCard.minimim_alert_qty || 0
+    const alert_qty = 0
     let isPassCheck = false;
-    switch (item["item_status"]) {
-      case "income":
-        //-- รับเข้าสต๊อก
-        confirm_stockCard.balance += item.qty;
 
-        confirm_stockCard.transactions.push(newOrder);
+    if (wait_stockCard) {
+      const val_a = await Stocks.findById(req.params.id);
 
-        confirm_stockCard.save();
-        isPassCheck = true;
-        break;
-      case "reserved":
-        //-- ติดจอง
-        //รีเควสของเกิน(สินค้าคงคลัง-สต็อกคงคลังขั้นต่ำ) ให้ดีดออก
-        if ((balance - alert_qty) > item.qty) {
-          //if (alert_qty < item.qty) {
-          confirm_stockCard.transactions.push(newOrder);
+      const balance = val_a.balance
+      //-- คำนวณยอดคงเหลือหลังขอยั๊ก สินค้าในสต็อก
 
-          confirm_stockCard.reserved_qty += item.qty;
-          confirm_stockCard.balance -= item.qty;
+      switch (item["item_status"]) {
+        case "income":
+          //-- รับเข้าสต๊อก
+          val_a.balance += item.qty;
 
-          confirm_stockCard.save();
+          // confirm_stockCard.transactions.push(newOrder);
+
+          val_a.save();
           isPassCheck = true;
-
           break;
-        } else {
-          return res.status(403).send({ message: "เกิดข้อผิดพลาด reserved", alert_qty: alert_qty });
-        }
+        case "reserved":
+          //-- ติดจอง
+          //รีเควสของเกิน(สินค้าคงคลัง-สต็อกคงคลังขั้นต่ำ) ให้ดีดออก
+          if ((balance - alert_qty) > item.qty) {
+            //if (alert_qty < item.qty) {
+            // confirm_stockCard.transactions.push(newOrder);
 
-      // break;
-      case "withdraw":
-        //-- จำหน่าย หรือ ส่งออกไปแล้ว
-        if ((balance - alert_qty) > item.qty) {
-          confirm_stockCard.reserved_qty -= item.qty;
-          confirm_stockCard.transactions.push(newOrder);
+            // val_a.reserved_qty += item.qty;
+            val_a.balance -= item.qty;
 
-          confirm_stockCard.save();
-          isPassCheck = true;
+            val_a.save();
+            isPassCheck = true;
 
-          break;
-        } else {
-          return res.status(403).send({ message: "เกิดข้อผิดพลาด withdraw", alert_qty: alert_qty });
-        }
-      //default: ;
-    }
-    if (isPassCheck) {
-      //-- ส่งไปเก็บใน stock_orders
-      const item_log1 = req.body.detail
-      await new StockOrders({
-        ...item_log1,
-        timestamp: Date.now(),
-        // stock_order_id: req.body.stock_order_id,
-        branch_oid: "65aa1506f866895c9585e033",
-        branchName: "HQ",
-        isHqAdminOnly: true,
-        approver_user: req.body.approver_user || "",
-      }).save();
+            break;
+          } else {
+            return res.status(403).send({ message: "เกิดข้อผิดพลาด reserved", item_qty: item.qty });
+          }
 
+        // break;
+        case "withdraw":
+          //-- จำหน่าย หรือ ส่งออกไปแล้ว
+          if ((balance - alert_qty) > item.qty) {
+            val_a.reserved_qty -= item.qty;
+            //val_a.transactions.push(newOrder);
+
+            val_a.save();
+            isPassCheck = true;
+
+            break;
+          } else {
+            return res.status(403).send({ message: "เกิดข้อผิดพลาด withdraw", item_qty: item.qty });
+          }
+        //default: ;
+      }
       return res.status(200).send({
         status: true,
         message: "อนุมัติรายการสต็อกสำเร็จ ",
-        data: confirm_stockCard,
+        data: val_a,
       });
     }
+    /* await new StockOrders({
+       ...item,
+       timestamp: Date.now(),
+       stock_order_status: "approved",
+       approver_user: "mock_admin"
+     })*/
+
+
+
+    /* const newOrder = {
+       timestamp: new Date().toISOString(),
+       stock_order_status: "approved", //adminอนุมัติ
+       requester_user: "mock_Admin",
+       approver_user: "mock_Admin",
+       remark: req.body.remark || "-",
+       detail: req.body.detail || {}
+     }
+     newOrder.detail.stock_order_status = "approved"  //ปรับ status adminอนุมัติ
+ */
+
+
+    /*  if (isPassCheck) {
+        //-- ส่งไปเก็บใน stock_orders
+        const item_log1 = req.body.detail
+        await new StockOrders({
+          ...item_log1,
+          timestamp: Date.now(),
+          // stock_order_id: req.body.stock_order_id,
+          branch_oid: "65aa1506f866895c9585e033",
+          branchName: "HQ",
+          isHqAdminOnly: true,
+          approver_user: req.body.approver_user || "",
+        }).save();*/
+
+
 
     else {
       return res.status(403).send({ message: "เกิดข้อผิดพลาด_3", alert_qty: alert_qty });
