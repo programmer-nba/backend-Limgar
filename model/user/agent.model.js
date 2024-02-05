@@ -15,6 +15,7 @@ const complexityOptions = {
 
 const AgentSchema = new mongoose.Schema({
   profile_image: { type: String, required: false, default: "" },
+  prefix_name: { type: String, required: true },
   name: { type: String, required: true },
   tel: { type: String, required: true },
   username: { type: String, required: true },
@@ -78,12 +79,13 @@ const Agents = mongoose.model("agent", AgentSchema);
 
 const validate = (data) => {
   const schema = Joi.object({
+    prefix_name: Joi.string().required().label("ไม่พบคำนำหน้าชื่อ"),
     name: Joi.string().required().label("ไม่พบชื่อ"),
     tel: Joi.string().required().label("ไม่พบเบอร์โทร"),
     username: Joi.string().required().label("ไม่พบชื่อผู้ใช้งาน"),
     password: passwordComplexity(complexityOptions)
       .required()
-      .label("admin_password"),
+      .label("agent_password"),
     address: Joi.string().required().label("ไม่พบที่อยู่"),
     subdistrict: Joi.string().required().label("ไม่พบตำบล"),
     district: Joi.string().required().label("ไม่พบ เขต/อำเภอ"),
