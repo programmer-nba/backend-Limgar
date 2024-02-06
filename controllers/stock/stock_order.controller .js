@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const { StockOrders, validate } = require("../../model/stock/stock_order.model");
-//const { Stocks, validate2 } = require("../../model/stock/stock.model");
+const { Stocks } = require("../../model/stock/stock.model");
+const { Orders } = require("../../model/order/order.model");
 
 exports.create = async (req, res) => {
   try {
@@ -10,40 +11,45 @@ exports.create = async (req, res) => {
       return res
         .status(403)
         .send({ message: error.details[0].message, status: false });
-    /*const stockName = await StockOrders.find({
-      id: req.body.id,
-    });*/
-    /* const stockName = undefined;
-     if (stockName)
-       return res.status(401).send({
-         status: false,
-         message: "รายการบันทึกสต็อกนี้ มีในระบบเเล้ว",
-       });*/
 
-    /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
-     const hashPassword = await bcrypt.hash(req.body.password, salt);*/
+    const one_order = data;
+    const one_stock_list = await Stocks.findById(one_order.stock_info_oid);
 
+    if (!one_stock_list)
+      return res.status(404).send({
+        status: false,
+        message: "ไม่พบรายการสต็อกนี้",
+      });
+
+    //-- ส่งไปเก็บใน stock_orders
+    const stock_card = one_stock_list;
+    const item_log1 = {
+      order_oid: one_order.order_oid,
+      stock_info_oid: stock_card.id,
+      branch_oid: stock_card.branch_oid,
+      product_oid: stock_card.product_oid,
+      stock_category: stock_card.stock_category,
+      //--- one order --
+      item_status: one_order.item_status,
+      qty: one_order.qty,
+      requester_user: one_order.requester_user,
+      remark: one_order.remark,
+    }
     await new StockOrders({
-      ...data,
+      ...item_log1,
       timestamp: Date.now(),
-      // stock_order_id: req.body.stock_order_id,
-      branch_oid: "65aa1506f866895c9585e033",
-      //branchName: "HQ",
-      //isHqAdminOnly: true,
-      // product_oid: req.body.product_oid,
-      //  product_barcode: req.body.product_barcode,
-      // product_name: req.body.product_name,
-      // stock_category: req.body.stock_category || "-",
-      // item_status: req.body.item_status,
-      // qty: req.body.qty,
-      // requester_user: req.body.requester_user,
-      approver_user: req.body.approver_user || "",
-      // stock_order_status: req.body.stock_order_status,
-      //remark: req.body.remark || "-",
+      stock_order_status: "waitting",
+      approver_user: req.body.approver_user || "mock_admin",
+    }).save().then((item) => {
+      if (!item)
+        return res.status(403)
+          .send({ status: false, message: "ส่งบันทึกไม่สำเร็จ" });
 
-    }).save();
+      return res.status(200)
+        .send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ", data: item });
 
-    return res.status(200).send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ" });
+    });
+
 
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
@@ -261,41 +267,122 @@ exports.delete = async (req, res) => {
 
 exports.comfirm = async (req, res) => {
   try {
-    const one_approve = "mock_agent";
+    //const one_order = req.body;
 
-    //const confirmStock = await StockOrders.findOne({ _id: req.params.id });
-    //if (confirmStock) {
-    //--update contract document
-    //const { tax_id } = req.body
+    const wait_stockCard = await StockOrders.findById(req.params.id);
+    const timestamp_1 = new Date().toISOString();
 
-    if (!confirmStock) {
-      return res.status(404)
-        .send({ status: false, message: "ส่งข้อมูลเดินสต็อก ผิดพลาด1" });
+    // const alert_qty = confirm_stockCard.minimim_alert_qty || 0
+    const alert_qty = 0
+    let isPassCheck = false;
+    const search_id = wait_stockCard.stock_info_oid;
+    if (wait_stockCard) {
+      const one_stock_list = await Stocks.findById(search_id);
+
+      const balance = one_stock_list.balance
+      //-- คำนวณยอดคงเหลือหลังขอยั๊ก สินค้าในสต็อก
+      const item_status = wait_stockCard["item_status"]
+      switch (item_status) {
+        case "income":
+
+          //-- รับเข้าสต๊อก
+          one_stock_list.balance += wait_stockCard.qty;
+
+          one_stock_list.timestamp = timestamp_1
+          one_stock_list.save();
+          isPassCheck = true;
+          break;
+        case "reserved":
+
+          //-- ติดจอง
+          //รีเควสของเกิน(สินค้าคงคลัง-สต็อกคงคลังขั้นต่ำ) ให้ดีดออก
+          if ((balance - alert_qty) > wait_stockCard.qty) {
+
+            // one_stock_list.reserved_qty += item.qty;
+            one_stock_list.balance -= wait_stockCard.qty;
+
+            one_stock_list.timestamp = timestamp_1
+            one_stock_list.save();
+            isPassCheck = true;
+
+            break;
+          } else {
+            return res.status(403).send({ message: "เกิดข้อผิดพลาด reserved", item_qty: wait_stockCard.qty });
+          }
+        case "withdraw":
+          //-- จำหน่าย หรือ ส่งออกไปแล้ว
+          if ((balance - alert_qty) > wait_stockCard.qty) {
+            one_stock_list.reserved_qty -= wait_stockCard.qty;
+            //one_stock_list.transactions.push(newOrder);
+
+            one_stock_list.timestamp = timestamp_1
+            one_stock_list.save();
+            isPassCheck = true;
+
+            break;
+          } else {
+            return res.status(403).send({ message: "เกิดข้อผิดพลาด withdraw", item_qty: wait_stockCard.qty });
+          }
+        default:
+          return res.status(403).send({ message: "เกิดข้อผิดพลาด:", item_status });
+      }
+
+      if (isPassCheck) {
+
+        //-- ส่งไปเก็บใน stock_orders
+        const stock_card = wait_stockCard;
+        const item_log1 = {
+          order_oid: stock_card.order_oid,
+          stock_order_status: stock_card.stock_order_status,
+          stock_order_id: stock_card.stock_order_id,
+          branch_oid: stock_card.branch_oid,
+          product_oid: stock_card.product_oid,
+          stock_category: stock_card.stock_category,
+          item_status: stock_card.item_status,
+          qty: stock_card.qty,
+          requester_user: stock_card.requester_user,
+          remark: stock_card.remark,
+        }
+        await new StockOrders({
+          ...item_log1,
+          timestamp: Date.now(),
+          stock_order_status: "approved",
+          approver_user: req.body.approver_user || "mock_admin",
+        }).save();
+
+        /* if (!item)
+           return res.status(403)
+             .send({ status: false, message: "ส่งรายการบันทึกไม่สำเร็จ" });*/
+
+        //-- push to order status
+        const updateStatus = await Orders.findById(stock_card.order_oid);
+
+        if (updateStatus) {
+          updateStatus.update_status.push({
+            stock_order_id: "order_test1",
+            name: "แพ็คสินค้าลงกล่อง",
+            approver_user: "mock_admin",
+            timestamp: new Date().toISOString(),
+          });
+          updateStatus.save();
+
+
+          return res.status(200)
+            .send({
+              status: true,
+              message: "อนุมัติรายการสต็อกสำเร็จ ",
+
+            });
+        }
+      }
     }
-    const id = req.params.id;
-    //const a = tax_id.tax_id;
-    // รอแก้
-
-    StockOrders.findByIdAndUpdate(id, {
-      //...req.body
-      stock_order_status: "approved",
-      approver_user: one_approve || "-"
+    else {
+      return res.status(403)
+        .send({ message: "เกิดข้อผิดพลาด_3", alert_qty: alert_qty });
     }
-      , { useFindAndModify: false })
-      .then((item) => {
-        if (!item)
-          return res.status(404)
-            .send({ status: false, message: "แก้ไขข้อมูลเดินสต็อก ไม่สำเร็จ1" });
-        return res.status(200)
-          .send({ status: true, message: "ยืนยัน ข้อมูลเดินสต็อกสำเร็จ" });
-      }).catch((err) => {
-        console.log(err);
-        return res.status(500)
-          .send({ status: false, message: "มีบางอย่างผิดพลาด :" + id });
-      });
-
   } catch (err) {
-    return res.status(500).send({ message: "Internal Server Error" });
+    return res.status(500)
+      .send({ message: "Internal Server Error" });
   }
 };
 
