@@ -14,11 +14,11 @@ const complexityOptions = {
 };
 
 const AdminSchema = new mongoose.Schema({
-  admin_name: {type: String, required: true}, //ชื่อ
-  admin_username: {type: String, required: true}, //เลขบัตร
-  admin_password: {type: String, required: true}, //รหัส
-  admin_position: {type: String, required: true},
-  admin_date_start: {type: Date, required: false, default: Date.now()}, //เริ่ม
+  admin_name: { type: String, required: true }, //ชื่อ
+  admin_username: { type: String, required: true }, //เลขบัตร
+  admin_password: { type: String, required: true }, //รหัส
+  admin_position: { type: String, required: true },
+  admin_date_start: { type: Date, required: false, default: Date.now() }, //เริ่ม
 });
 
 AdminSchema.methods.generateAuthToken = function () {
@@ -31,7 +31,7 @@ AdminSchema.methods.generateAuthToken = function () {
     },
     process.env.JWTPRIVATEKEY,
     {
-      expiresIn: "4h",
+      expiresIn: "60d",
     }
   );
   return token;
@@ -51,4 +51,4 @@ const validate = (data) => {
   return schema.validate(data);
 };
 
-module.exports = {Admins, validate};
+module.exports = { Admins, validate };
