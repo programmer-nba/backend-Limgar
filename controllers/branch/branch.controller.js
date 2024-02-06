@@ -35,14 +35,14 @@ exports.create = async (req, res) => {
 
 exports.getAgentAll = async (req, res) => {
   try {
-    const agent = await Branchs.find();
-    if (!agent)
+    const branch = await Branchs.find();
+    if (!branch)
       return res
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลสาขาไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลสาขาสำเร็จ", data: agent });
+      .send({ status: true, message: "ดึงข้อมูลสาขาสำเร็จ", data: branch });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -51,14 +51,14 @@ exports.getAgentAll = async (req, res) => {
 exports.getAgentById = async (req, res) => {
   try {
     const id = req.params.id;
-    const agent = await Branchs.findById(id);
-    if (!agent)
+    const branch = await Branchs.findById(id);
+    if (!branch)
       return res
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลสาขานี้ไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลสาขานี้สำเร็จ", data: agent });
+      .send({ status: true, message: "ดึงข้อมูลสาขานี้สำเร็จ", data: branch });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
