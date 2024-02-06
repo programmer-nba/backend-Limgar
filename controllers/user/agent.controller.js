@@ -20,8 +20,14 @@ exports.create = async (req, res) => {
 
     const salt = await bcrypt.genSalt(Number(process.env.SALT));
     const hashPassword = await bcrypt.hash(req.body.password, salt);
+
+    let last_name = req.body.last_name || "limgar"
+    let first_name = req.body.first_name || ""
+    const fisrt_nick_name = first_name + " " + last_name.substring(0, 4)
+
     await new Agents({
       ...req.body,
+      name: fisrt_nick_name,
       password: hashPassword,
       agent_position: "agent",
       timestamp: Date.now(),

@@ -16,12 +16,17 @@ const complexityOptions = {
 const AgentSchema = new mongoose.Schema({
   profile_image: { type: String, required: false, default: "" },
   prefix_name: { type: String, required: true },
+  first_name: { type: String, required: true },
+  last_name: { type: String, required: true },
   name: { type: String, required: true },
   tel: { type: String, required: true },
   username: { type: String, required: true },
   password: { type: String, required: true },
   agent_position: { type: String, required: true },
   address: { type: String, required: true },
+  address_moo: { type: String, required: true },
+  address_byway: { type: String, required: true },
+  address_street: { type: String, required: true },
   subdistrict: { type: String, required: true },
   district: { type: String, required: true },
   province: { type: String, required: true },
@@ -69,7 +74,7 @@ AgentSchema.methods.generateAuthToken = function () {
     },
     process.env.JWTPRIVATEKEY,
     {
-      expiresIn: "3h",
+      expiresIn: "60d",
     }
   );
   return token;
@@ -80,13 +85,18 @@ const Agents = mongoose.model("agent", AgentSchema);
 const validate = (data) => {
   const schema = Joi.object({
     prefix_name: Joi.string().required().label("ไม่พบคำนำหน้าชื่อ"),
-    name: Joi.string().required().label("ไม่พบชื่อ"),
+    first_name: Joi.string().required().label("ไม่พบชื่อหลัก"),
+    last_name: Joi.string().required().label("ไม่พบชื่อสกุล"),
+    //name: Joi.string().required().label("ไม่พบชื่อเล่น"),
     tel: Joi.string().required().label("ไม่พบเบอร์โทร"),
     username: Joi.string().required().label("ไม่พบชื่อผู้ใช้งาน"),
     password: passwordComplexity(complexityOptions)
       .required()
       .label("agent_password"),
-    address: Joi.string().required().label("ไม่พบที่อยู่"),
+    address: Joi.string().required().label("ไม่พบที่อยู่-บ้านเลขที่"),
+    address_moo: Joi.string().required().label("ไม่พบที่อยู่-หมู่"),
+    address_byway: Joi.string().label("ไม่พบที่อยู่-ซอย"),
+    address_street: Joi.string().label("ไม่พบที่อยู่-ถนน"),
     subdistrict: Joi.string().required().label("ไม่พบตำบล"),
     district: Joi.string().required().label("ไม่พบ เขต/อำเภอ"),
     province: Joi.string().required().label("ไม่พบจังหวัด"),
