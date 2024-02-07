@@ -44,6 +44,9 @@ router.post("/", auth, async (req, res) => {
             },
             agent_info: {
               address: agent.address,
+              address_moo: agent.address_moo,
+              address_byway: agent.address_byway,
+              address_street: agent.address_street,
               subdistrict: agent.subdistrict,
               district: agent.district,
               province: agent.province,
