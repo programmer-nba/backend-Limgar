@@ -3,7 +3,9 @@ const { Stocks, validate } = require("../../model/stock/stock.model");
 //const stock_order = require("../../controllers/stock/stock_order.controller ");
 const { StockOrders } = require("../../model/stock/stock_order.model");
 const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
+const { Orders } = require("../../model/order/order.model")
 const { Branchs } = require("../../model/branch/branch.model");
+var _ = require("lodash")
 
 exports.create = async (req, res) => {
   try {
@@ -12,39 +14,29 @@ exports.create = async (req, res) => {
       return res
         .status(403)
         .send({ message: error.details[0].message, status: false });
-    const stockName = await Stocks.findOne({
-      product_barcode: req.body.product_barcode,
+    const stock_info = await Stocks.findOne({
+      branch_oid: req.body.branch_oid,
+      stock_category: req.body.stock_category,
     });
-    if (stockName)
+    if (stock_info)
       return res.status(401).send({
         status: false,
-        message: "มีชื่อสต็อกนี้ในระบบเเล้ว",
+        message: "มีคลังสต็อกนี้ในระบบเเล้ว",
       });
 
-    //const salt = await bcrypt.genSalt(Number(process.env.SALT));
-    //sconst hashPassword = await bcrypt.hash(req.body.password, salt);
-
-    //const timestamp_1 = new Date().toISOString()
-    /*  const newOrder = {
-        timestamp: timestamp_1,
-        stock_order_status: "created",
-        requester_user: "mock_Admin",
-        approver_user: "mock_Admin",
-        remark: req.body.remark || "-",
-        //detail: {}
-      }*/
     await new Stocks({
       ...req.body,
       //--initial first transaction stock
       createdDatetime: Date.now(),
-      minimim_alert_qty: 0,
-      balance: 0,
-      //reserved_qty: 0,
       //transactions: newOrder
-    }).save();
-
-    return res.status(200).send({ status: true, message: "ลงรายการชื่อสต็อกสำเร็จ" });
-
+    }).save().then((item) => {
+      if (!item) {
+        return res.status(404)
+          .send({ status: false, message: "สร้างสต็อกไม่สำเร็จ" });
+      }
+      return res.status(200)
+        .send({ status: true, message: "สร้างคลังสต็อกสำเร็จ" });
+    });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -52,49 +44,63 @@ exports.create = async (req, res) => {
 
 exports.getStockAll = async (req, res) => {
   try {
+
     const stock_lists = await Stocks.find();
+    const stock_order_lists = await StockOrders.find({
+      stock_order_status: "approved"
+    });
 
     if (!stock_lists)
       return res.status(404)
         .send({ status: false, message: "ดึงข้อมูลชื่อสต็อกไม่สำเร็จ" });
-    /*
-        const val_b = stock_lists[0]
-        const product = await Products.findById(val_b.product_oid);
-        const branch = await Branchs.findById(val_b.branch_oid);
-    
-        const val_a = new Stocks({
-          timepstamp: val_b.timestamp,
-          createdDatetime: val_b.createdDatetime,
-          approver_user: val_b.approver_user,
-    
-          product_oid: product.id,
-          product_name: product.product_name,
-          stock_category: val_b.stock_category,
-    
-          branch_oid: branch.id,
-          branch_name: branch.name,
-    
-          product_cost: val_b.product_cost,
-          product_net_weight: val_b.product_net_weight,
-          balance: val_b.balance
-        })*/
+    if (stock_order_lists.length === 0)
+      return res.status(404)
+        .send({ status: false, message: "ไม่พบการเดินรายการสต็อก" });
+
+    //-- เอาไปใส่ใน items
+    _.forEach(stock_lists, (val1, index1) => {
+      const search_a = val1.stock_category
+      let summary_one_product = _.reduce(stock_order_lists, (result, val2, key2) => {
+        //----เช็คstock_category มันต้องตรงกัน
+        if (search_a === val2.stock_category) {
+
+          //-- รวมยอดproduct ในสต็อก
+          if (!result[val2.product_oid]) {
+
+            result[val2.product_oid] = {
+              product_oid: val2.product_oid,
+              qty: val2.qty
+            }
+          } else {
+            result[val2.product_oid].qty += val2.qty;
+          }
+
+          return result
+        }
+
+      }, {})
+
+      val1.items.push(summary_one_product)
+    })
 
     return res.status(200)
-      .send({ status: true, message: "ดึงข้อมูลชื่อสต็อกสำเร็จ", data: stock_lists });
+      .send({ status: true, message: "ดึงข้อมูลรายการสต็อกสำเร็จ", data: stock_lists });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
 
-exports.getStockById = async (req, res) => {
+exports.getStockByBranch_oid = async (req, res) => {
   try {
     const id = req.params.id;
-    const agent = await Stocks.findById(id);
+    const agent = await StockOrders.findById(id);
     if (!agent)
-      return res.status(404)
-        .send({ status: false, message: "ดึงข้อมูลชื่อสต็อกไม่สำเร็จ" });
-    return res.status(200)
-      .send({ status: true, message: "ดึงข้อมูลชื่อสต็อกสำเร็จ", data: agent });
+      return res
+        .status(404)
+        .send({ status: false, message: "ดึงรายการเคลื่อนไหวสต็อกไม่สำเร็จ" });
+    return res
+      .status(200)
+      .send({ status: true, message: "ดึงรายการเคลื่อนไหวสต็อกสำเร็จ", data: agent });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }

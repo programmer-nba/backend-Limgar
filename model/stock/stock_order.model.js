@@ -4,6 +4,7 @@ const Joi = require("joi");
 const StockOrderSchema = new mongoose.Schema({
   timestamp: { type: Date, required: false, default: Date.now() },
   order_oid: { type: String, required: false },
+  product_oid: { type: String, required: false },
   stock_order_status: { type: String, required: false },
   stock_info_oid: { type: String, required: false },
   branch_oid: { type: String, required: false },
@@ -13,7 +14,11 @@ const StockOrderSchema = new mongoose.Schema({
   qty: { type: Number, required: false },
   requester_user: { type: String, required: false },
   approver_user: { type: String, required: false },
-  remark: { type: String, required: false }
+  remark: { type: String, required: false },
+  status: [{
+    timestamp: { type: Date, required: false, default: Date.now() },
+    name: { type: String, required: false },
+  }]
 });
 
 const StockOrders = mongoose.model("stock_orders", StockOrderSchema);
@@ -24,7 +29,7 @@ const validate = (data) => {
     order_oid: Joi.string().label("ใส่ order oid"),
     stock_info_oid: Joi.string().label("ใส่ stock info oid"),
     //stock_order_status: Joi.string().label("ใส่สถานะการยืนยันบันทึกสต๊อกสินค้า"),
-    //product_oid: Joi.string().required().label("ใส่oidสินค้า"),
+    product_oid: Joi.string().label("ใส่oidสินค้า"),
     //product_barcode: Joi.string().required().label("ใส่บาร์โค๊ดสต๊อกสินค้า"),
     //product_name: Joi.string().required().label("ใส่ชื่อสต๊อกสินค้า"),
     stock_category: Joi.string().label("ใส่แคตตาล็อกต๊อกสินค้า"),
