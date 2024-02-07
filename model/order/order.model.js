@@ -40,6 +40,8 @@ const OrderSchema = new mongoose.Schema({
     },
   }],
   products_total: { type: Number, required: false },
+  vat: { type: Number, required: false },
+  discount: { type: Number, required: false },
   agent_oid: { type: String, required: false },
   requester_user: { type: String, required: false },
   remark: { type: String, required: false },

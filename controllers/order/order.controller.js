@@ -64,7 +64,7 @@ exports.create = async (req, res) => {
           dealerPrice = "price_three"  //สมมติว่า Lv1
           break;
         default:
-          dealerPrice = "price_one"  //สมมติว่า Lv1
+          dealerPrice = "price_one"  //ปรับเป็นราคาหน้าร้าน
       }
 
     }
@@ -86,7 +86,7 @@ exports.create = async (req, res) => {
       return result;
     }, {})
 
-
+    //summary product order
     _.forEach(product_orders, async (val, key) => {
       let one_product = val
 
@@ -121,8 +121,41 @@ exports.create = async (req, res) => {
         timestamp: new Date().toISOString(),
       },
       payment_type: req.body.payment_type,
+
+      //--เลือกรับเอง หรือ จัดส่ง
+      /*  product_pickup_type: {
+          type: "At the distribution center",
+          branch_oid: branch_oid,
+          branch_address: { ...adress },
+          po_id: "A240200001"
+        },*/
+      /* product_pickup_type_2: {
+         type: "Delivery",
+         po_id: "A240200001",
+         customer_name: "sdsdadsasdasd",
+         tel: "13213213213",
+         Destination_address: { ...adress },
+         packages: [
+           {
+             Shipping: "flash",
+             tracking_number: "12s212ss13"
+           }, {
+             Shipping: "kerry",
+             tracking_number: "12s212ss13"
+           }, {
+             Shipping: "thaipost",
+             tracking_number: "12s212ss13"
+           }, {
+             Shipping: "etc.",
+             tracking_number: "-",
+             rider_name: "asdasdka;skd;l",
+             tel: "056516516"
+           }
+         ]
+       },*/
       products_total: sum_total_price,
-      packages: newData
+      packages: newData,
+      remark: "-"
     }).save();
 
     const newOrderCard = await Orders.findOne({
