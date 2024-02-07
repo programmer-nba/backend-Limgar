@@ -33,6 +33,9 @@ app.use("/Limgar/channels", require("./routes/more/channels"));
 //Branch
 app.use("/Limgar/branch", require("./routes/branch/branch"));
 
+//delivery
+app.use("/Limgar/delivery", require("./routes/delivery/delivery"));
+
 // Porduct
 app.use("/Limgar/product", require("./routes/product/product"));
 app.use("/Limgar/product/image", require("./controllers/product/uploadfile"));
