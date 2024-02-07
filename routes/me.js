@@ -43,6 +43,10 @@ router.post("/", auth, async (req, res) => {
               step2: agent.allow_term_con.step2
             },
             agent_info: {
+              prefix_name: agent.prefix_name,
+              first_name: agent.first_name,
+              last_name: agent.last_name,
+              tel: agent.tel,
               address: agent.address,
               address_moo: agent.address_moo,
               address_byway: agent.address_byway,
