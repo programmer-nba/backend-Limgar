@@ -160,6 +160,8 @@ exports.comfirm = async (req, res) => {
   try {
     //const a = req.
     const updateStatus = await Agents.findOne({ _id: req.params.id });
+
+    updateStatus.active = true
     if (updateStatus) {
       updateStatus.status.push({
         name: "อนุมัติ",
