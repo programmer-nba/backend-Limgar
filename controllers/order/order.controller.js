@@ -23,6 +23,10 @@ exports.create = async (req, res) => {
     const agent_order_one = await Agents.findOne({ _id: req.decoded._id })
 
     let agent_level = ""  //สมมติว่า ส่งมาเป็น Lv1
+    if (!agent_order_one.row || agent_order_one.row === "") {
+      return res.status(404)
+        .send({ status: false, message: "ไม่พบ ข้อมูลระดับตัวแทนจำหน่าย" });
+    }
     const agent_row = await Rows.findOne({ _id: agent_order_one.row })
 
     if (agent_row) {

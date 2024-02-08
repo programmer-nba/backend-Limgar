@@ -209,7 +209,7 @@ exports.comfirm = async (req, res) => {
       if (wait_stockCard.item_status === "reserved") {
 
         //-- push update status to order status
-        const updateStatus = await Orders.findById(stock_card.order_oid);
+        const updateStatus = await Orders.findById(wait_stockCard.order_oid);
 
         if (updateStatus) {
           updateStatus.update_status.push({

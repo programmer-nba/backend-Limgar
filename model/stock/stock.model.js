@@ -16,6 +16,7 @@ const StockSchema = new mongoose.Schema({
   //product_net_weight: { type: Number, required: false },
   //minimim_alert_qty: { type: Number, required: false },
   //balance: { type: Number, required: false },
+  total_qty: { type: Number, required: false },
   //  reserved_qty: { type: Number, required: false },
   items: [],
 });
@@ -31,7 +32,7 @@ const validate = (data) => {
     // product_name: Joi.string().required().label("ใส่ชื่อสต๊อกสินค้า"),
     stock_category: Joi.string().label("ใส่แคตตาล็อกต๊อกสินค้า"),
     branch_oid: Joi.string().label("ใส่รหัสสาขา"),
-    // branchName: Joi.string().required().label("ใส่ชื่อสาขา"),
+    branchName: Joi.string().label("ใส่ชื่อสาขา"),
     // isHqAdminOnly: Joi.boolean().default(true),
     // product_cost: Joi.number().required().default(0),
     // product_net_weight: Joi.number().required().default(0),

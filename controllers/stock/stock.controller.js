@@ -49,6 +49,8 @@ exports.getStockAll = async (req, res) => {
     const stock_order_lists = await StockOrders.find({
       stock_order_status: "approved"
     });
+    const product_lists = await Products.find()
+    const branch_lists = await Branchs.find()
 
     if (!stock_lists)
       return res.status(404)
@@ -60,27 +62,57 @@ exports.getStockAll = async (req, res) => {
     //-- เอาไปใส่ใน items
     _.forEach(stock_lists, (val1, index1) => {
       const search_a = val1.stock_category
+      //---ดึง branch name
+      const search_c = _.find(branch_lists, (item) => {
+        if (item.id === val1.branch_oid) {
+          return item.name
+        }
+      })
+      val1.branch_name = search_c.name
+
       let summary_one_product = _.reduce(stock_order_lists, (result, val2, key2) => {
+
         //----เช็คstock_category มันต้องตรงกัน
         if (search_a === val2.stock_category) {
+
+          //ถ้าเป็น จองของ เบิกออก กลับค่าเป็น ลบ
+          let count = val2.qty
+          if (val2.item_status == "reserved" || val2.item_status == "witdraw") {
+            count = -Math.abs(count)
+          }
 
           //-- รวมยอดproduct ในสต็อก
           if (!result[val2.product_oid]) {
 
+            let search_b = _.find(product_lists, (item) => {
+              if (item.id === val2.product_oid) {
+                return item.product_name
+              }
+
+            })
+
             result[val2.product_oid] = {
               product_oid: val2.product_oid,
-              qty: val2.qty
+              product_name: search_b.product_name || "",
+              qty: count
             }
-          } else {
-            result[val2.product_oid].qty += val2.qty;
+            return result
           }
+          result[val2.product_oid].qty += count;
 
+          //          result = data_a
+          //result.push(data_a)
           return result
         }
 
       }, {})
 
-      val1.items.push(summary_one_product)
+      //--- ดึงใส้ในออกมาใช้
+      _.forEach(summary_one_product, (val3, index1) => {
+        val1.items.push(val3)
+        val1.balance += val3.qty
+      })
+
     })
 
     return res.status(200)
