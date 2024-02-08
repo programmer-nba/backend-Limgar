@@ -16,7 +16,7 @@ exports.create = async (req, res) => {
         .send({ message: error.details[0].message, status: false });
     const stock_info = await Stocks.findOne({
       branch_oid: req.body.branch_oid,
-      stock_category: req.body.stock_category,
+      stock_name: req.body.stock_name,
     });
     if (stock_info)
       return res.status(401).send({
@@ -28,6 +28,7 @@ exports.create = async (req, res) => {
       ...req.body,
       //--initial first transaction stock
       createdDatetime: Date.now(),
+
       //transactions: newOrder
     }).save().then((item) => {
       if (!item) {
@@ -35,7 +36,7 @@ exports.create = async (req, res) => {
           .send({ status: false, message: "สร้างสต็อกไม่สำเร็จ" });
       }
       return res.status(200)
-        .send({ status: true, message: "สร้างคลังสต็อกสำเร็จ" });
+        .send({ status: true, message: "สร้างคลังสต็อกสำเร็จ", data: item });
     });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
@@ -227,7 +228,7 @@ exports.holdOrderById = async (req, res) => {
       requestOrder.transactions.push({
         ...req.body,
         timestamp: Date.now(),
-        approver_user: "mock_admin",
+        // approver_user: "mock_admin",
         order_status: "waiting", //-- รอ admin อนุมัติ
         remark: req.body.remark,
       });
@@ -275,8 +276,8 @@ exports.holdOrder = async (req, res) => {
       const newOrder = {
         timestamp: new Date().toISOString(),
         stock_order_status: "waiting", //รอ admin
-        requester_user: "mock_Admin",
-        approver_user: "mock_Admin",
+        //requester_user: "mock_Admin",
+        // approver_user: "mock_Admin",
         remark: req.body.remark || "-",
         detail: req.body.detail || {}
       }
@@ -393,7 +394,7 @@ exports.comfirm = async (req, res) => {
           ...item_log1,
           timestamp: Date.now(),
           stock_order_status: "approved",
-          approver_user: req.body.approver_user || "mock_admin",
+          approver_user: req.body.approver_user,
         }).save().then((item) => {
 
           if (!item)
@@ -435,7 +436,7 @@ exports.cancel = async (req, res) => {
       rejectOrder.transactions.push({
         ...req.body,
         timestamp: new Date().toISOString(),
-        approver_user: "mock_admin",
+        //approver_user: "mock_admin",
         stock_order_status: "rejected", //--  admin ไม่อนุมัติ
         remark: req.body.remark || "-",
         detail: req.body.detail || {}

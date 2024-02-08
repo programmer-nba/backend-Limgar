@@ -282,7 +282,7 @@ exports.holdOrder = async (req, res) => {
       requestOrder.transactions.push({
         ...req.body,
         timestamp: Date.now(),
-        approver_user: "mock_admin",
+        // approver_user: "mock_admin",
         order_status: "waiting", //-- รอ admin อนุมัติ
         remark: req.body.remark,
       });
@@ -385,7 +385,7 @@ exports.comfirm = async (req, res) => {
     if (updateStatus) {
       updateStatus.update_status.push({
         name: "อนุมัติ",
-        approver_user: "mock_admin",
+        //  approver_user: "mock_admin",
         timestamp: new Date().toISOString(),
       });
       updateStatus.save();
@@ -417,7 +417,7 @@ exports.cancel = async (req, res) => {
       rejectOrder.transactions.push({
         ...req.body,
         timestamp: Date.now(),
-        approver_user: "mock_admin",
+        //approver_user: "mock_admin",
         name: "rejected", //--  admin ไม่อนุมัติ
         remark: req.body.remark,
       });
