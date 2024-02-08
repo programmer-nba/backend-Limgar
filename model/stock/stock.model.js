@@ -25,12 +25,12 @@ const Stocks = mongoose.model("stocks", StockSchema);
 const validate = (data) => {
   const schema = Joi.object({
     timestamp: Joi.date().default(Date.now()),
-    approver_user: Joi.string().required().label("ใส่ชื่อผู้สร้างสต๊อกสินค้า"),
+    approver_user: Joi.string().label("ใส่ชื่อผู้สร้างสต๊อกสินค้า"),
     //product_oid: Joi.string().required().label("ใส่oidสินค้า"),
     // product_barcode: Joi.string().required().label("ใส่บาร์โค๊ดสต๊อกสินค้า"),
     // product_name: Joi.string().required().label("ใส่ชื่อสต๊อกสินค้า"),
-    stock_category: Joi.string().required().label("ใส่แคตตาล็อกต๊อกสินค้า"),
-    branch_oid: Joi.string().required().label("ใส่รหัสสาขา"),
+    stock_category: Joi.string().label("ใส่แคตตาล็อกต๊อกสินค้า"),
+    branch_oid: Joi.string().label("ใส่รหัสสาขา"),
     // branchName: Joi.string().required().label("ใส่ชื่อสาขา"),
     // isHqAdminOnly: Joi.boolean().default(true),
     // product_cost: Joi.number().required().default(0),
