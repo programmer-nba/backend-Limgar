@@ -69,7 +69,11 @@ exports.getStockAll = async (req, res) => {
           return item.name
         }
       })
+      //-- initial for items
       val1.branch_name = search_c.name
+      val1.total_qty = 0
+      val1.stock_count = 0
+
 
       let summary_one_product = _.reduce(stock_order_lists, (result, val2, key2) => {
 
@@ -107,11 +111,12 @@ exports.getStockAll = async (req, res) => {
         }
 
       }, {})
-      val1.total_qty = 0
-      //--- ดึงใส้ในออกมาใช้
+
+      //--- ดึงใส้ใน reduceออกมาใช้
       _.forEach(summary_one_product, (val3, index1) => {
         val1.items.push(val3)
         val1.total_qty += val3.qty
+        val1.stock_count++
       })
 
     })

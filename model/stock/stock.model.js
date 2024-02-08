@@ -18,6 +18,7 @@ const StockSchema = new mongoose.Schema({
   //minimim_alert_qty: { type: Number, required: false },
   //balance: { type: Number, required: false },
   total_qty: { type: Number, required: false },
+  stock_count: { type: Number, required: false },
   //  reserved_qty: { type: Number, required: false },
   items: [],
 });
