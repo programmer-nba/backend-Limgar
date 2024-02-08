@@ -11,10 +11,10 @@ exports.create = async (req, res) => {
       name: req.body.name,
       tel: req.body.tel,
     });
-    if ((listBranch.name === req.body.name) && (listBranch.name === req.body.tel))
+    if ((listBranch.name === req.body.name) && (listBranch.tel === req.body.tel))
       return res.status(401).send({
         status: false,
-        message: "สาขานี้มีชื่อผู้ใช้งานนี้หรือเบอร์โทรศัพ์นี้ในระบบเเล้ว",
+        message: "สาขานี้มีในระบบนี้หรือเบอร์โทรศัพ์นี้ในระบบเเล้ว",
       });
 
     await new Branchs({
@@ -29,7 +29,7 @@ exports.create = async (req, res) => {
 
     return res.status(200).send({ status: true, message: "ลงทะเบียนสาขานี้สำเร็จ" });
   } catch (err) {
-    return res.status(500).send({ message: "Internal Server Error" });
+    return res.status(500).send({ message: "Internal Server Error : Branch_create" });
   }
 };
 
