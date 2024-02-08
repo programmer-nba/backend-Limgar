@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const { Agents, validate } = require("../../model/user/agent.model");
+const { Rows } = require("../../model/user/row.model");
 
 exports.create = async (req, res) => {
   try {
@@ -25,12 +26,20 @@ exports.create = async (req, res) => {
     let first_name = req.body.first_name || ""
     const fisrt_nick_name = first_name + " " + last_name.substring(0, 4)
 
+    let row_lv1 = await Rows.findOne({ level_name: "agent_Lv1" })
+    if (!row_lv1)
+      return res.status(404).send({
+        status: false,
+        message: "ไม่พบ ระดับตัวแทนขาย",
+      });
+
     await new Agents({
       ...req.body,
       name: fisrt_nick_name,
       password: hashPassword,
       agent_position: "agent",
       timestamp: Date.now(),
+      row: row_lv1.id,
       active: false,
       allow_term_con: {
         step1: false,

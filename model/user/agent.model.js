@@ -31,7 +31,7 @@ const AgentSchema = new mongoose.Schema({
   district: { type: String, required: true },
   province: { type: String, required: true },
   postcode: { type: String, required: true },
-  row: { type: String, required: false, default: "" },
+  row: { type: String, required: false },
   channels: {
     name: { type: String, require: false, default: "" },
     detail: { type: String, require: false, default: "" }
