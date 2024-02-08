@@ -7,14 +7,17 @@ exports.create = async (req, res) => {
       return res
         .status(403)
         .send({ message: error.details[0].message, status: false });
+
     const listBranch = await Branchs.findOne({
       name: req.body.name,
       tel: req.body.tel,
     });
-    if ((listBranch.name === req.body.name) && (listBranch.tel === req.body.tel))
+
+    if (listBranch)
+      //if ((listBranch.name === req.body.name) && (listBranch.tel === req.body.tel))
       return res.status(401).send({
         status: false,
-        message: "สาขานี้มีในระบบนี้หรือเบอร์โทรศัพ์นี้ในระบบเเล้ว",
+        message: "สาขานี้มีในระบบนี้เเล้ว",
       });
 
     await new Branchs({
