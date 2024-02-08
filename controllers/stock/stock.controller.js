@@ -106,11 +106,11 @@ exports.getStockAll = async (req, res) => {
         }
 
       }, {})
-
+      val1.total_qty = 0
       //--- ดึงใส้ในออกมาใช้
       _.forEach(summary_one_product, (val3, index1) => {
         val1.items.push(val3)
-        val1.balance += val3.qty
+        val1.total_qty += val3.qty
       })
 
     })

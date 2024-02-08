@@ -33,6 +33,7 @@ const validate = (data) => {
     stock_category: Joi.string().label("ใส่แคตตาล็อกต๊อกสินค้า"),
     branch_oid: Joi.string().label("ใส่รหัสสาขา"),
     branchName: Joi.string().label("ใส่ชื่อสาขา"),
+    total_qty: Joi.number().default(0),
     // isHqAdminOnly: Joi.boolean().default(true),
     // product_cost: Joi.number().required().default(0),
     // product_net_weight: Joi.number().required().default(0),
