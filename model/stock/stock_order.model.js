@@ -8,7 +8,7 @@ const StockOrderSchema = new mongoose.Schema({
   stock_order_status: { type: String, required: false },
   stock_info_oid: { type: String, required: false },
   branch_oid: { type: String, required: false },
-  product_oid: { type: String, required: false },
+  product_name: { type: String, required: false },
   stock_category: { type: String, required: false },
   item_status: { type: String, required: false },
   qty: { type: Number, required: false },
