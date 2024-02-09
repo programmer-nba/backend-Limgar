@@ -48,78 +48,10 @@ exports.getStockAll = async (req, res) => {
   try {
 
     const stock_lists = await Stocks.find();
-    const stock_summary_lists = await StocksSummary.find();
-    const stock_order_lists = await StockOrders.find({
-      stock_order_status: "approved"
-    });
-    const product_lists = await Products.find()
-    const branch_lists = await Branchs.find()
 
-    if (!stock_summary_lists)
+    if (!stock_lists)
       return res.status(404)
-        .send({ status: false, message: "ดึงข้อมูลตัวสต็อกไม่สำเร็จ" });
-    if (stock_order_lists.length === 0)
-      return res.status(404)
-        .send({ status: false, message: "ไม่พบการเดินรายการสต็อก" });
-
-    //-- เอาไปใส่ใน items
-    _.forEach(stock_summary_lists, (val1, index1) => {
-      const search_a = val1.stock_category
-      //---ดึง branch name
-      const search_c = _.find(branch_lists, (item) => {
-        if (item.id === val1.branch_oid) {
-          return item.name
-        }
-      })
-      //-- initial for items
-      val1.branch_name = search_c.name
-      val1.total_qty = 0
-      val1.stock_count = 0
-
-
-      let summary_one_product = _.reduce(stock_order_lists, (result, val2, key2) => {
-
-        //----เช็คstock_category มันต้องตรงกัน
-        if (search_a === val2.stock_category) {
-
-          //ถ้าเป็น จองของ เบิกออก กลับค่าเป็น ลบ
-          let count = val2.qty
-          if (val2.item_status == "reserved" || val2.item_status == "witdraw") {
-            count = -Math.abs(count)
-          }
-
-          //-- รวมยอดproduct ในสต็อก
-          if (!result[val2.product_oid]) {
-
-            let search_b = _.find(product_lists, (item) => {
-              if (item.id === val2.product_oid) {
-                return item.product_name
-              }
-
-            })
-
-            result[val2.product_oid] = {
-              product_oid: val2.product_oid,
-              product_name: search_b.product_name || "",
-              qty: count
-            }
-            return result
-          }
-          result[val2.product_oid].qty += count;
-
-          return result
-        }
-
-      }, {})
-
-      //--- ดึงใส้ใน reduceออกมาใช้
-      _.forEach(summary_one_product, (val3, index1) => {
-        val1.items.push(val3)
-        val1.total_qty += val3.qty
-        val1.stock_count++
-      })
-
-    })
+        .send({ status: false, message: "ไม่พบ คลังสต็อก" });
 
     return res.status(200)
       .send({ status: true, message: "ดึงข้อมูลรายการสต็อกสำเร็จ", data: stock_lists });
@@ -136,77 +68,7 @@ exports.getStockByBranch_oid = async (req, res) => {
     });
     if (stock_lists.length === 0)
       return res.status(404)
-        .send({ status: false, message: "ไม่พบ รายการสต็อกในสาขานี้" });
-
-    const stock_order_lists = await StockOrders.find({
-      stock_order_status: "approved"
-    });
-    const product_lists = await Products.find()
-    const branch_lists = await Branchs.find()
-
-
-    if (stock_order_lists.length === 0)
-      return res.status(404)
-        .send({ status: false, message: "ไม่พบการเดินรายการสต็อก" });
-
-    //-- เอาไปใส่ใน items
-    _.forEach(stock_lists, (val1, index1) => {
-      const search_a = val1.stock_category
-      //---ดึง branch name
-      const search_c = _.find(branch_lists, (item) => {
-        if (item.id === val1.branch_oid) {
-          return item.name
-        }
-      })
-      //-- initial for items
-      val1.branch_name = search_c.name
-      val1.total_qty = 0
-      val1.stock_count = 0
-
-
-      let summary_one_product = _.reduce(stock_order_lists, (result, val2, key2) => {
-
-        //----เช็คstock_category มันต้องตรงกัน
-        if (search_a === val2.stock_category) {
-
-          //ถ้าเป็น จองของ เบิกออก กลับค่าเป็น ลบ
-          let count = val2.qty
-          if (val2.item_status == "reserved" || val2.item_status == "witdraw") {
-            count = -Math.abs(count)
-          }
-
-          //-- รวมยอดproduct ในสต็อก
-          if (!result[val2.product_oid]) {
-
-            let search_b = _.find(product_lists, (item) => {
-              if (item.id === val2.product_oid) {
-                return item.product_name
-              }
-
-            })
-
-            result[val2.product_oid] = {
-              product_oid: val2.product_oid,
-              product_name: search_b.product_name || "",
-              qty: count
-            }
-            return result
-          }
-          result[val2.product_oid].qty += count;
-
-          return result
-        }
-
-      }, {})
-
-      //--- ดึงใส้ใน reduceออกมาใช้
-      _.forEach(summary_one_product, (val3, index1) => {
-        val1.items.push(val3)
-        val1.total_qty += val3.qty
-        val1.stock_count++
-      })
-
-    })
+        .send({ status: false, message: "ไม่พบ คลังสต็อกนี้" });
 
     return res.status(200)
       .send({ status: true, message: "ดึงข้อมูลรายการสต็อกสำเร็จ", data: stock_lists });
@@ -292,54 +154,7 @@ exports.holdOrderById = async (req, res) => {
   let a = req.params.oid
 
   try {
-    let a = req.params.oid
-    const requestOrder = await Stocks.findOne({
-      _id: req.params.id,
-    });
 
-    if (requestOrder) {
-      // let b = requestOrder.transactions
-      // let a = requestOrder.transactions[b.length - 1].detail.order_id
-      //debugger
-      requestOrder.transactions.push({
-        ...req.body,
-        timestamp: Date.now(),
-        // approver_user: "mock_admin",
-        order_status: "waiting", //-- รอ admin อนุมัติ
-        remark: req.body.remark,
-      });
-
-      //-- คำนวณยอดคงเหลือหลังขอยั๊ก สินค้าในสต็อก
-      const item = req.body.detail
-
-      switch (item["item_status"]) {
-        case "income":
-          //-- รับเข้าสต๊อก
-          //requestOrder.balance += item.qty;
-          break;
-        case "reserved":
-          //-- ติดจอง
-
-          requestOrder.reserved_qty += item.qty;
-          requestOrder.balance -= item.qty;
-
-          break;
-        case "encash":
-          //-- จำหน่าย หรือ ส่งออกไปแล้ว
-          //requestOrder.reserved_qty -= item.qty;
-          break;
-        //default: ;
-      }
-
-      requestOrder.save();
-      return res.status(200).send({
-        status: true,
-        message: "ส่งคำขอรายการสต็อกสำเร็จ",
-        data: requestOrder,
-      });
-    } else {
-      return res.status(403).send({ message: "เกิดข้อผิดพลาด " + a });
-    }
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }

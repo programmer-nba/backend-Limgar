@@ -110,13 +110,6 @@ exports.create_B = async (req, res) => {
 exports.getStockAll = async (req, res) => {
   try {
     const stock_summary_lists = await StocksSummary.find();
-    // const stock_lists = await Stocks.find();
-    /* const stock_order_lists = await StockOrders.find({
-       stock_order_status: "approved"
-     });*/
-    // const product_lists = await Products.find()
-    //const branch_lists = await Branchs.find()
-
 
     if (stock_summary_lists.length === 0)
       return res.status(404)
@@ -134,23 +127,10 @@ exports.getStockByBranch_oid = async (req, res) => {
     const id = req.params.id // "branch_oid"
 
     const stock_summary_lists = await StocksSummary.find({ branch_oid: id });
-    /* const stock_lists = await Stocks.find({
-       branch_oid: id
-     });*/
+
     if (stock_summary_lists.length === 0)
       return res.status(404)
         .send({ status: false, message: "ไม่พบ รายการสต็อกในสาขานี้" });
-
-    /*  const stock_order_lists = await StockOrders.find({
-        stock_order_status: "approved"
-      });*/
-    //  const product_lists = await Products.find()
-    // const branch_lists = await Branchs.find()
-
-
-    /*  if (stock_order_lists.length === 0)
-        return res.status(404)
-          .send({ status: false, message: "ไม่พบการเดินรายการสต็อก" });*/
 
     return res.status(200)
       .send({ status: true, message: "ดึงข้อมูลรายการสต็อกสำเร็จ", data: stock_summary_lists });
