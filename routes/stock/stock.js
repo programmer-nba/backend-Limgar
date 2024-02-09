@@ -3,7 +3,7 @@ const stock = require("../../controllers/stock/stock.controller");
 
 router.post("/register", stock.create);
 router.get("/", stock.getStockAll);
-router.get("/:id", stock.getStockByBranch_oid);
+router.get("/branch/:id", stock.getStockByBranch_oid);
 //router.get("/:id", stock.getStockByproduct_oid);
 router.put("/:id", stock.update);
 router.delete("/:id", stock.delete);

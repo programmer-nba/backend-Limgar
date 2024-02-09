@@ -5,7 +5,8 @@ const { StockOrders } = require("../../model/stock/stock_order.model");
 const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
 const { Orders } = require("../../model/order/order.model")
 const { Branchs } = require("../../model/branch/branch.model");
-var _ = require("lodash")
+var _ = require("lodash");
+const { StocksSummary } = require("../../model/stock/stock_summary.model");
 
 exports.create = async (req, res) => {
   try {
@@ -47,15 +48,103 @@ exports.getStockAll = async (req, res) => {
   try {
 
     const stock_lists = await Stocks.find();
+    const stock_summary_lists = await StocksSummary.find();
     const stock_order_lists = await StockOrders.find({
       stock_order_status: "approved"
     });
     const product_lists = await Products.find()
     const branch_lists = await Branchs.find()
 
-    if (!stock_lists)
+    if (!stock_summary_lists)
       return res.status(404)
-        .send({ status: false, message: "ดึงข้อมูลชื่อสต็อกไม่สำเร็จ" });
+        .send({ status: false, message: "ดึงข้อมูลตัวสต็อกไม่สำเร็จ" });
+    if (stock_order_lists.length === 0)
+      return res.status(404)
+        .send({ status: false, message: "ไม่พบการเดินรายการสต็อก" });
+
+    //-- เอาไปใส่ใน items
+    _.forEach(stock_summary_lists, (val1, index1) => {
+      const search_a = val1.stock_category
+      //---ดึง branch name
+      const search_c = _.find(branch_lists, (item) => {
+        if (item.id === val1.branch_oid) {
+          return item.name
+        }
+      })
+      //-- initial for items
+      val1.branch_name = search_c.name
+      val1.total_qty = 0
+      val1.stock_count = 0
+
+
+      let summary_one_product = _.reduce(stock_order_lists, (result, val2, key2) => {
+
+        //----เช็คstock_category มันต้องตรงกัน
+        if (search_a === val2.stock_category) {
+
+          //ถ้าเป็น จองของ เบิกออก กลับค่าเป็น ลบ
+          let count = val2.qty
+          if (val2.item_status == "reserved" || val2.item_status == "witdraw") {
+            count = -Math.abs(count)
+          }
+
+          //-- รวมยอดproduct ในสต็อก
+          if (!result[val2.product_oid]) {
+
+            let search_b = _.find(product_lists, (item) => {
+              if (item.id === val2.product_oid) {
+                return item.product_name
+              }
+
+            })
+
+            result[val2.product_oid] = {
+              product_oid: val2.product_oid,
+              product_name: search_b.product_name || "",
+              qty: count
+            }
+            return result
+          }
+          result[val2.product_oid].qty += count;
+
+          return result
+        }
+
+      }, {})
+
+      //--- ดึงใส้ใน reduceออกมาใช้
+      _.forEach(summary_one_product, (val3, index1) => {
+        val1.items.push(val3)
+        val1.total_qty += val3.qty
+        val1.stock_count++
+      })
+
+    })
+
+    return res.status(200)
+      .send({ status: true, message: "ดึงข้อมูลรายการสต็อกสำเร็จ", data: stock_lists });
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+exports.getStockByBranch_oid = async (req, res) => {
+  try {
+    const id = req.params.id // "branch_oid"
+    const stock_lists = await Stocks.find({
+      branch_oid: id
+    });
+    if (stock_lists.length === 0)
+      return res.status(404)
+        .send({ status: false, message: "ไม่พบ รายการสต็อกในสาขานี้" });
+
+    const stock_order_lists = await StockOrders.find({
+      stock_order_status: "approved"
+    });
+    const product_lists = await Products.find()
+    const branch_lists = await Branchs.find()
+
+
     if (stock_order_lists.length === 0)
       return res.status(404)
         .send({ status: false, message: "ไม่พบการเดินรายการสต็อก" });
@@ -105,8 +194,6 @@ exports.getStockAll = async (req, res) => {
           }
           result[val2.product_oid].qty += count;
 
-          //          result = data_a
-          //result.push(data_a)
           return result
         }
 
@@ -123,22 +210,6 @@ exports.getStockAll = async (req, res) => {
 
     return res.status(200)
       .send({ status: true, message: "ดึงข้อมูลรายการสต็อกสำเร็จ", data: stock_lists });
-  } catch (err) {
-    return res.status(500).send({ message: "Internal Server Error" });
-  }
-};
-
-exports.getStockByBranch_oid = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const agent = await StockOrders.findById(id);
-    if (!agent)
-      return res
-        .status(404)
-        .send({ status: false, message: "ดึงรายการเคลื่อนไหวสต็อกไม่สำเร็จ" });
-    return res
-      .status(200)
-      .send({ status: true, message: "ดึงรายการเคลื่อนไหวสต็อกสำเร็จ", data: agent });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }

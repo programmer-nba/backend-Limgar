@@ -45,6 +45,8 @@ app.use("/Limgar/product_price", require("./routes/product/product_price"));
 
 //stock
 app.use("/Limgar/stock", require("./routes/stock/stock"));
+app.use("/Limgar/stock_summary", require("./routes/stock/stock_summary"));
+//stock_log
 app.use("/Limgar/stock_order", require("./routes/stock/stock_order"));
 
 //order

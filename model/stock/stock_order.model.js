@@ -36,9 +36,9 @@ const validate = (data) => {
     //branch_oid: Joi.string().label("ใส่รหัสสาขา"),
     //branchName: Joi.string().label("ใส่ชื่อสาขา"),
     //isHqAdminOnly: Joi.boolean().default(true),
-    item_status: Joi.string().required().label("ใส่สถานะการดำเนินการสต๊อกสินค้า"),
+    //item_status: Joi.string().required().label("ใส่สถานะการดำเนินการสต๊อกสินค้า"),
     qty: Joi.number().required().label("ใส่จำนวน"),
-    requester_user: Joi.string().required().label("ใส่ชื่อคนดำเนินการ"),
+    //requester_user: Joi.string().required().label("ใส่ชื่อคนดำเนินการ"),
     remark: Joi.string().default(""),
   });
   return schema.validate(data);
