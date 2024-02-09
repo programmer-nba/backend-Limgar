@@ -380,6 +380,8 @@ exports.holdOrder = async (req, res) => {
 };*/
 
 exports.comfirm = async (req, res) => {
+  //--วิ่งไปตัดของในคลังได้เลย
+
   try {
     const updateStatus = await Orders.findOne({ _id: req.params.id });
     if (updateStatus) {
