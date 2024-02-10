@@ -5,6 +5,8 @@ const StockOrderSchema = new mongoose.Schema({
   timestamp: { type: Date, required: false, default: Date.now() },
   order_oid: { type: String, required: false },
   product_oid: { type: String, required: false },
+  product_price_oid: { type: String, required: false },
+  unit_perPack: { type: Number },
   stock_order_status: { type: String, required: false },
   stock_info_oid: { type: String, required: false },
   branch_oid: { type: String, required: false },

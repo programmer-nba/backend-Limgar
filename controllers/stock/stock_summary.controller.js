@@ -4,9 +4,11 @@ const { StocksSummary, validate } = require("../../model/stock/stock_summary.mod
 //const stock_order = require("../../controllers/stock/stock_order.controller ");
 const { StockOrders } = require("../../model/stock/stock_order.model");
 const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
+const { ProductsPrice } = require("../../test_SplitPriceAndProduct/model/product/product_price.model");
 const { Orders } = require("../../model/order/order.model")
 const { Branchs } = require("../../model/branch/branch.model");
-var _ = require("lodash")
+var _ = require("lodash");
+const { Schema } = require("mongoose");
 
 //--summary
 exports.create = async (req, res) => {
@@ -199,10 +201,354 @@ exports.holdOrderById = async (req, res) => {
   }
 };
 
-exports.holdOrder = async (req, res) => {
+exports.add_stock = async (req, res) => {
   try {
 
-  } catch (err) {
+    let data = req.body
+    const { error } = validate(data);
+    if (error)
+      return res.status(403)
+        .send({ message: error.details[0].message, status: false });
+
+    /*  if (data.qty === 0)
+        return res.status(403)
+          .send({ message: "จำนวนไม่ถูกต้อง", qty: data.qty, status: false });*/
+
+    const one_order = data;
+    const one_stock_list = await Stocks.findById(one_order.stock_info_oid);
+
+    if (!one_stock_list)
+      return res.status(404).send({
+        status: false,
+        message: "ไม่พบคลังสต็อกนี้",
+      });
+
+    /* const one_product_price = await ProductsPrice.findById(one_order.product_price_oid);
+     if (!one_product_price)
+       return res.status(404).send({
+         status: false,
+         message: "ไม่พบแพ็กราคาสินค้านี้",
+       });*/
+
+    const one_product = await Products.findById(one_order.product_oid);
+    if (!one_product)
+      return res.status(404).send({
+        status: false,
+        message: "ไม่พบชื่อสินค้านี้",
+      });
+
+
+    //-- สร้างobjเก็บคำสั่ง
+    const one_stockCard = new Schema({
+      order_oid: { type: String },
+      stock_info_oid: { type: String },
+      branch_oid: { type: String },
+      product_oid: { type: String },
+      product_price_oid: { type: String },
+      unit_perPack: { type: Number },
+      product_name: { type: String },
+      stock_category: { type: String },
+      //--- one order --
+      item_status: { type: String },
+      qty: { type: Number },
+      total_count: { type: Number },
+      // requester_user: { type: String },
+      approver_user: { type: String },
+      remark: { type: String },
+    })
+
+    one_stockCard.stock_info_oid = one_stock_list.id
+    one_stockCard.branch_oid = one_stock_list.branch_oid
+    one_stockCard.product_oid = one_order.product_oid
+    one_stockCard.product_name = one_product.product_name || "-"
+    one_stockCard.stock_category = one_stock_list.stock_category || "-"
+
+    //one_stockCard.product_price_oid = one_order.product_price_oid
+    //one_stockCard.unit_perPack = one_order.amount
+    one_stockCard.remark = one_order.remark || "-"
+    one_stockCard.item_status = "Created"
+
+    one_stockCard.qty = 0
+    // one_stockCard.total_count = 0
+    //--
+
+    const wait_stockCard = one_stockCard
+
+    //-- เรียก Summary_stock
+    const summary_stockCard = await StocksSummary.findOne({
+      branch_oid: wait_stockCard.branch_oid,
+      stock_info_oid: wait_stockCard.stock_info_oid
+    });
+
+    if (!summary_stockCard) {
+      return res.status(404)
+        .send({ status: false, message: "ไม่พบสต็อก ", data: check_status });
+    }
+
+    //--- add รายการเปล่าก่อน
+    let data_b = {
+
+      timestamp: new Date().toISOString(),
+      stock_category: wait_stockCard.stock_category,
+      product_price_oid: wait_stockCard.product_price_oid,
+      product_oid: wait_stockCard.product_oid,
+      product_name: one_product.product_name,
+      unit_perPack: wait_stockCard.unit_perPack,
+      // total_count: 0,
+      qty: 0
+    }
+    /*  // -- หารายการสต๊อกซ้ำ 
+      let search_b = _.find(summary_stockCard.items, (one_item) => {
+        return one_item.product_price_oid === wait_stockCard.product_price_oid
+      })*/
+
+    // -- หารายการสต๊อกซ้ำ 
+    let search_b = _.find(summary_stockCard.items, (one_item) => {
+      return one_item.product_oid === wait_stockCard.product_oid
+    })
+
+    if (search_b) {
+      return res.status(403)
+        .send({ status: false, message: "มีรายการสต็อกนี้แล้ว" });
+    }
+
+    summary_stockCard.items.push(data_b)
+    await summary_stockCard.save();
+
+    //-- ใส่กลับเข้าไปใน items
+    let data_c = []
+    data_c.push(data_b)
+    let data_d
+    const id = summary_stockCard.id
+    const wait_stockCard_2 = await StocksSummary.findById(id)
+    if (wait_stockCard_2) {
+
+      //wait_stockCard_2.balance = data_a
+
+      // -- map by product_price_oid
+      // data_d = wait_stockCard_2.items.map(obj => data_c.find(o => o.product_price_oid === obj.product_price_oid) || obj)
+
+      // -- map by product_oid
+      data_d = wait_stockCard_2.items.map(obj => data_c.find(o => o.product_oid === obj.product_oid) || obj)
+
+      //console.log(data_d)
+      wait_stockCard_2.timestamp = new Date().toISOString()
+      wait_stockCard_2.items = data_d
+      wait_stockCard_2.total_product = wait_stockCard_2.items.length
+    }
+    wait_stockCard_2.save();
+
+    //-- เก็บgเข้า Stock Log
+    await new StockOrders({
+      ...one_stockCard,
+      timestamp: Date.now(),
+      // approver_user: req.body.approver_user || "mock_admin",
+      status: {
+        timestamp: Date.now(),
+        name: "approved",
+      }
+    }).save().then((item) => {
+      if (!item)
+        return res.status(403)
+          .send({ status: false, message: "ส่งบันทึกไม่สำเร็จ" });
+      return res.status(200)
+        .send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ", data: item });
+    });
+
+  }
+  catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+exports.income = async (req, res) => {
+  try {
+
+    let data = req.body
+    const { error } = validate(data);
+    if (error)
+      return res.status(403)
+        .send({ message: error.details[0].message, status: false });
+
+    /*  if (data.qty === 0)
+        return res.status(403)
+          .send({ message: "จำนวนไม่ถูกต้อง", qty: data.qty, status: false });*/
+
+    const one_order = data;
+    const one_stock_list = await Stocks.findById(one_order.stock_info_oid);
+
+    if (!one_stock_list)
+      return res.status(404).send({
+        status: false,
+        message: "ไม่พบคลังสต็อกนี้",
+      });
+
+    /* const one_product_price = await ProductsPrice.findById(one_order.product_price_oid);
+     if (!one_product_price)
+       return res.status(404).send({
+         status: false,
+         message: "ไม่พบแพ็กราคาสินค้านี้",
+       });*/
+
+    const one_product = await Products.findById(one_order.product_oid);
+    if (!one_product)
+      return res.status(404).send({
+        status: false,
+        message: "ไม่พบชื่อสินค้านี้",
+      });
+
+
+    //-- สร้างobjเก็บคำสั่ง
+    const one_stockCard = new Schema({
+      order_oid: { type: String },
+      stock_info_oid: { type: String },
+      branch_oid: { type: String },
+      product_oid: { type: String },
+      product_price_oid: { type: String },
+      unit_perPack: { type: Number },
+      product_name: { type: String },
+      stock_category: { type: String },
+      //--- one order --
+      item_status: { type: String },
+      qty: { type: Number },
+      total_count: { type: Number },
+      // requester_user: { type: String },
+      approver_user: { type: String },
+      remark: { type: String },
+    })
+
+    one_stockCard.stock_info_oid = one_stock_list.id
+    one_stockCard.branch_oid = one_stock_list.branch_oid
+    one_stockCard.product_oid = one_order.product_oid
+    one_stockCard.product_name = one_product.product_name || "-"
+    one_stockCard.stock_category = one_stock_list.stock_category || "-"
+
+    // one_stockCard.product_price_oid = one_order.product_price_oid
+    // one_stockCard.unit_perPack = one_product_price.amount
+    one_stockCard.remark = one_order.remark || "-"
+    one_stockCard.item_status = "income"
+
+    one_stockCard.qty = 1
+    //one_stockCard.total_count = one_stockCard.qty * one_product_price.amount
+    //--
+
+    const wait_stockCard = one_stockCard
+
+    //-- เรียก Summary_stock
+    const summary_stockCard = await StocksSummary.findOne({
+      branch_oid: wait_stockCard.branch_oid,
+      stock_info_oid: wait_stockCard.stock_info_oid
+    });
+
+    if (!summary_stockCard) {
+      return res.status(404)
+        .send({ status: false, message: "ไม่พบสต็อก ", data: check_status });
+    }
+
+    //--- add รายการเปล่าก่อน
+    let data_b = {
+
+      timestamp: new Date().toISOString(),
+      //stock_category: wait_stockCard.stock_category,
+      product_oid: wait_stockCard.product_oid,
+      product_name: one_product.product_name,
+      // unit_perPack: wait_stockCard.unit_perPack,
+      //total_count: 0,
+      qty: 0
+    }
+    /*if (summary_stockCard.items.length == 0) {
+
+      summary_stockCard.items.push(data_b)
+      await summary_stockCard.save();
+    } else {*/
+
+    /* let search_b = _.find(summary_stockCard.items, (one_item) => {
+       return one_item.product_price_oid === wait_stockCard.product_price_oid
+     })*/
+    // -- หารายการสต๊อกซ้ำ 
+    let search_b = _.find(summary_stockCard.items, (one_item) => {
+      return one_item.product_oid === wait_stockCard.product_oid
+    })
+
+    if (!search_b) {
+      return res.status(404)
+        .send({ status: false, message: "ไม่พบรายการสต็อกนี้" });
+
+    } else {
+      data_b = {
+        timestamp: new Date().toISOString(),
+        //  product_price_oid: search_b.product_price_oid,
+        product_oid: search_b.product_oid,
+        product_name: search_b.product_name,
+        //   unit_perPack: search_b.unit_perPack,
+        //   total_count: search_b.total_count,
+        qty: search_b.qty,
+      }
+
+      //  summary_stockCard.items.push(data_b)
+      // await summary_stockCard.save();
+    }
+    // }
+
+    //---  เริ่มปรับค่าในstock summary
+    let data_a = summary_stockCard.balance;
+    if (wait_stockCard.item_status === "income") {
+
+      /* // -- แตกหน่วย ลัง / ชิ้น
+       let convert_pice = wait_stockCard.qty * wait_stockCard.unit_perPack
+ 
+       data_a = summary_stockCard.balance + convert_pice
+       data_b.qty += wait_stockCard.qty
+       data_b.total_count += convert_pice*/
+
+      // -- นับรายชิ้น
+
+      data_a = summary_stockCard.balance + wait_stockCard.qty
+      data_b.qty += wait_stockCard.qty
+
+    }
+
+    let data_c = []
+    data_c.push(data_b)
+    let data_d
+    const id = summary_stockCard.id
+    const wait_stockCard_2 = await StocksSummary.findById(id)
+    if (wait_stockCard_2) {
+
+      wait_stockCard_2.balance = data_a
+
+      // data_d = wait_stockCard_2.items.map(obj => data_c.find(o => o.product_price_oid === obj.product_price_oid) || obj)
+
+      data_d = wait_stockCard_2.items.map(obj => data_c.find(o => o.product_oid === obj.product_oid) || obj)
+
+      //console.log(data_d)
+      //});
+      wait_stockCard_2.timestamp = new Date().toISOString()
+      wait_stockCard_2.items = data_d
+      wait_stockCard_2.total_product = wait_stockCard_2.items.length
+    }
+    wait_stockCard_2.save();
+
+    //-- เก็บgเข้า Stock Log
+    await new StockOrders({
+      ...one_stockCard,
+      timestamp: Date.now(),
+      // stock_order_status: "waitting",
+      // approver_user: req.body.approver_user || "mock_admin",
+      status: {
+        timestamp: Date.now(),
+        name: "approved",
+      }
+    }).save().then((item) => {
+      if (!item)
+        return res.status(403)
+          .send({ status: false, message: "ส่งบันทึกไม่สำเร็จ" });
+      return res.status(200)
+        .send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ", data: item });
+    });
+
+  }
+  catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };

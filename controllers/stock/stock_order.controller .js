@@ -41,11 +41,12 @@ exports.create = async (req, res) => {
       stock_info_oid: stock_card.id,
       branch_oid: stock_card.branch_oid,
       product_oid: one_order.product_oid,
+      product_price_oid: one_order, product_price_oid,
       product_name: one_product.product_name,
       stock_category: stock_card.stock_category,
       //--- one order --
       item_status: "income",
-      qty: one_order.qty,
+      qty: one_order.qty,//แก้ให้อ่านจาก order
       requester_user: one_order.requester_user,
       remark: one_order.remark,
     }
