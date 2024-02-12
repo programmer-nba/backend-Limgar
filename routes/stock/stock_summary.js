@@ -13,7 +13,7 @@ router.delete("/:id", auth_admin, stock_summary.delete);
 
 //-- เดินรายการสต็อก
 router.post("/add_stock", stock_summary.add_stock);//--
-router.post("/income", stock_summary.income);//--
+//router.post("/income", stock_summary.income);//--
 //router.put("/request/:id/_:oid", stock.holdOrderById);//--
 //router.put("/confirm/:id", stock_summary.comfirm);
 //router.put("/cancel/:id", stock_summary.cancel);

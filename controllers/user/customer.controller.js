@@ -1,4 +1,3 @@
-const bcrypt = require("bcrypt");
 const { Customers, validate } = require("../../model/user/customer.model");
 
 exports.create = async (req, res) => {
@@ -9,48 +8,43 @@ exports.create = async (req, res) => {
         .status(403)
         .send({ message: error.details[0].message, status: false });
     const customer = await Customers.findOne({
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
+      name: req.body.name,
       tel: req.body.tel,
     });
-    if (customer)
-      return res.status(401).send({
-        status: false,
-        message: "มีชื่อลูกค้าหรือเบอร์โทรศัพ์นี้ในระบบเเล้ว",
+
+    //--ชื่อเดิมมีในDB
+    if (customer) {
+      const id = customer.id
+      Customers.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+        .then((item) => {
+
+          if (!item)
+            return res
+              .status(401)
+              .send({ status: false, message: "แก้ไขข้อมูลลูกค้าไม่สำเร็จ" });
+
+          return res
+            .status(200)
+            .send({ status: true, message: "แก้ไขข้อมูลค้าสำเร็จ", data: item });
+        })
+
+    } else {
+      //--ชื่อใหม่ ไม่มีในDB
+      await new Customers({
+        ...req.body,
+        member_position: "member",
+        timestamp: Date.now(),
+        active: false,
+      }).save().then((item) => {
+        if (!item) {
+          return res
+            .status(401)
+            .send({ status: false, message: "บันทึกข้อมูลลูกค้าไม่สำเร็จ" });
+        }
+        return res.status(200)
+          .send({ status: true, message: "สมัครสมาชิกสำเร็จ", data: item });
       });
-
-    //const salt = await bcrypt.genSalt(Number(process.env.SALT));
-    //const hashPassword = await bcrypt.hash(req.body.password, salt);
-
-    let last_name = req.body.last_name || "limgar"
-    let first_name = req.body.first_name || ""
-    const fisrt_nick_name = first_name + " " + last_name.substring(0, 4)
-
-    await new Customers({
-      ...req.body,
-      name: fisrt_nick_name,
-      //password: hashPassword,
-      member_position: "member",
-      timestamp: Date.now(),
-      active: false,
-      /*allow_term_con: {
-        step1: false,
-        step2: false
-      },*/
-      status: {
-        name: "รอตรวจสอบ",
-        timestamp: Date.now()
-      }
-    }).save().then((item) => {
-      if (!item) {
-        return res
-          .status(404)
-          .send({ status: false, message: "บันทึกข้อมูลลูกค้าไม่สำเร็จ" });
-      }
-      return res.status(200)
-        .send({ status: true, message: "สมัครสมาชิกสำเร็จ", data: item });
-    });
-
+    }
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -90,50 +84,27 @@ exports.update = async (req, res) => {
       return res.status(404).send({ status: false, message: "ส่งข้อมูลผิดพลาด" });
 
     const id = req.params.id;
-    if (!req.body.password) {
-      Customers.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
-        .then((item) => {
 
-          if (!item)
-            return res
-              .status(404)
-              .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
+    Customers.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+      .then((item) => {
 
+        if (!item)
           return res
-            .status(200)
-            .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
-        })
+            .status(404)
+            .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
 
-        .catch((err) => {
-          console.log(err);
-          return res
-            .status(500)
-            .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
-        });
-    } else {
-      const salt = await bcrypt.genSalt(Number(process.env.SALT));
-      const hashPassword = await bcrypt.hash(req.body.password, salt);
-      Customers.findByIdAndUpdate(
-        id,
-        { ...req.body, password: hashPassword },
-        { useFindAndModify: false }
-      )
-        .then((item) => {
-          if (!item)
-            return res
-              .status(404)
-              .send({ status: false, message: "แก้ไขข้อมูลไม่สำเร็จ" });
-          return res
-            .status(200)
-            .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
-        })
-        .catch((err) => {
-          console.log(err);
-          return res
-            .status(500)
-            .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
-        });
-    }
+        return res
+          .status(200)
+          .send({ status: true, message: "แก้ไขข้อมูลสำเร็จ" });
+      })
+
+      .catch((err) => {
+        console.log(err);
+        return res
+          .status(500)
+          .send({ status: false, message: "มีบางอย่างผิดพลาด" + id });
+      });
+
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }

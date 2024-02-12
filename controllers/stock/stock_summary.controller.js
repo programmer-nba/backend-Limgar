@@ -51,6 +51,7 @@ exports.create = async (req, res) => {
 };
 
 exports.create_B = async (req, res) => {
+  //--reserved 
   try {
     let data = req.body
     const { error } = validate(data);
@@ -252,7 +253,7 @@ exports.add_stock = async (req, res) => {
       stock_info_oid: { type: String },
       branch_oid: { type: String },
       product_oid: [{ type: String }],
-      product_price_oid: { type: String },
+      //product_price_oid: { type: String },
       unit_perPack: { type: Number },
       product_name: { type: String },
       stock_category: { type: String },
@@ -261,6 +262,10 @@ exports.add_stock = async (req, res) => {
       qty: { type: Number },
       total_count: { type: Number },
       // requester_user: { type: String },
+      product_prices: [{
+        product_price_oid: { type: String },
+        unit_perPack: { type: Number },
+      }],
       approver_user: { type: String },
       remark: { type: String },
     })
@@ -276,10 +281,11 @@ exports.add_stock = async (req, res) => {
         .send({ status: false, message: "ไม่พบสต็อก " });
     }
 
+
     // _.forIn(one_order.product_oid, async (val1, key1) => {
     for (let val1 of one_order.product_oid) {
 
-      let one_product = _.find(product_list, (one_item) => {
+      const one_product = _.find(product_list, (one_item) => {
         return one_item.id === val1
       })
       //-- ถ้ามีการนำเข้าแล้ว ให้หยุดการนำเข้าซ้ำ
@@ -291,6 +297,19 @@ exports.add_stock = async (req, res) => {
         })
       }
 
+      const product_price_list = await ProductsPrice.find({ product_oid: one_product.id });
+      if (!product_price_list)
+        return res.status(404).send({
+          status: false,
+          message: "ไม่พบแพ็กราคาสินค้านี้",
+        });
+
+      //--นับจำนวนแพ็กเกจ รวมกัน
+      let data_e = product_price_list.reduce((acc, val2, key2) => {
+        return acc += val2.amount;
+      }, 0)
+
+
       one_stockCard.stock_info_oid = one_stock_list.id
       one_stockCard.branch_oid = one_stock_list.branch_oid
       one_stockCard.product_oid = one_product.id
@@ -300,9 +319,9 @@ exports.add_stock = async (req, res) => {
       //one_stockCard.product_price_oid = one_order.product_price_oid
       //one_stockCard.unit_perPack = one_order.amount
       one_stockCard.remark = one_order.remark || "-"
-      one_stockCard.item_status = "Created"
-
-      one_stockCard.qty = 0
+      one_stockCard.item_status = "income"
+      //one_stockCard.product_prices = data_e
+      one_stockCard.qty = data_e
       // one_stockCard.total_count = 0
       //--
 
@@ -324,12 +343,13 @@ exports.add_stock = async (req, res) => {
 
         timestamp: new Date().toISOString(),
         stock_category: wait_stockCard.stock_category,
-        product_price_oid: wait_stockCard.product_price_oid,
+        //product_price_oid: wait_stockCard.product_price_oid,
         product_oid: val1,
         product_name: wait_stockCard.product_name,
-        //unit_perPack: wait_stockCard.unit_perPack,
+        unit_perPack: wait_stockCard.unit_perPack,
         // total_count: 0,
-        qty: 0
+        //product_price: wait_stockCard
+        qty: wait_stockCard.qty
       }
       /*  // -- หารายการสต๊อกซ้ำ 
         let search_b = _.find(summary_stockCard.items, (one_item) => {
@@ -358,6 +378,16 @@ exports.add_stock = async (req, res) => {
         const id = summary_stockCard.id
         const wait_stockCard_2 = await StocksSummary.findById(id)
         if (wait_stockCard_2) {
+
+
+          let search_b = _.find(wait_stockCard_2.items, (one_item) => {
+            return one_item.product_oid === one_product.id
+          })
+
+          let data_a = data_b.qty
+
+          //data_b.qty += search_b.qty
+          wait_stockCard_2.balance += search_b.qty
 
           //wait_stockCard_2.balance = data_a
 
