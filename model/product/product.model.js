@@ -12,6 +12,7 @@ const ProductShema = new mongoose.Schema({
   product_net_weight: { type: Number, required: true },
   isOutStock: { type: Boolean, required: true },//--สินค้านี้ หมดสต็อกรึยัง?
   isImported: { type: Boolean, required: true },//--สินค้านี้ นำเข้าคลังแล้วรึยัง?
+  stock_info_oid: { type: String, required: false, default: "" },
   product_prices: []
 });
 

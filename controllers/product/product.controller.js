@@ -24,6 +24,7 @@ exports.create = async (req, res) => {
     await new Products({
       ...req.body,
       isOutStock: false,
+      isImported: false,
       product_image: "16_4k32_P7uDWvZMflvVXUKcI5jRNLfu_", //--HotFix
     }).save();
 
@@ -39,7 +40,7 @@ exports.create = async (req, res) => {
       isHqAdminOnly: true,
       product_oid: product2.id,
       branch_oid: "65aa1506f866895c9585e033",
-      branchName: "HQ",
+      //branchName: "HQ",
       amount: 1,
       price: {
         price_one: 0,
@@ -68,7 +69,7 @@ exports.create = async (req, res) => {
 exports.getProductAll = async (req, res) => {
   //const branchName = req.body.branchName
 
-  //--ค้นเฉพาะ ราคาจากHQ
+  //--ค้นเฉพาะ ราคาจากHQ  --hotfix
   const searchByBranchName = "HQ"
   try {
     const product = await Products.find();

@@ -282,6 +282,14 @@ exports.add_stock = async (req, res) => {
       let one_product = _.find(product_list, (one_item) => {
         return one_item.id === val1
       })
+      //-- ถ้ามีการนำเข้าแล้ว ให้หยุดการนำเข้าซ้ำ
+      if (one_product.isImported) {
+        return res.status(401).send({
+          status: false,
+          message: "สินค้านี้ ถูกนำเข้าคลังแล้ว (stock_info)",
+          data: one_product.stock_info_oid,
+        })
+      }
 
       one_stockCard.stock_info_oid = one_stock_list.id
       one_stockCard.branch_oid = one_stock_list.branch_oid
@@ -319,7 +327,7 @@ exports.add_stock = async (req, res) => {
         product_price_oid: wait_stockCard.product_price_oid,
         product_oid: val1,
         product_name: wait_stockCard.product_name,
-        unit_perPack: wait_stockCard.unit_perPack,
+        //unit_perPack: wait_stockCard.unit_perPack,
         // total_count: 0,
         qty: 0
       }
@@ -363,8 +371,13 @@ exports.add_stock = async (req, res) => {
           wait_stockCard_2.timestamp = new Date().toISOString()
           wait_stockCard_2.items = data_d
           wait_stockCard_2.total_product = wait_stockCard_2.items.length
+
+          await Products.findByIdAndUpdate(data_b.product_oid,
+            { isImported: true },
+            { useFindAndModify: false })
         }
         await wait_stockCard_2.save();
+
 
         //-- เก็บgเข้า Stock Log
         await new StockOrders({
