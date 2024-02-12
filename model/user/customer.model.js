@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
-const passwordComplexity = require("joi-password-complexity");
+//const passwordComplexity = require("joi-password-complexity");
 
-const complexityOptions = {
+/*const complexityOptions = {
   min: 6,
   max: 30,
   lowerCase: 0,
@@ -11,17 +11,17 @@ const complexityOptions = {
   numeric: 0,
   symbol: 0,
   requirementCount: 2,
-};
+};*/
 
-const MemberSchema = new mongoose.Schema({
+const CustomerSchema = new mongoose.Schema({
   profile_image: { type: String, required: false, default: "" },
   prefix_name: { type: String, required: true },
   first_name: { type: String, required: true },
   last_name: { type: String, required: true },
   name: { type: String, required: true },
   tel: { type: String, required: true },
-  username: { type: String, required: true },
-  password: { type: String, required: true },
+  // username: { type: String, required: true },
+  // password: { type: String, required: true },
   position: { type: String, required: false },
   address: { type: String, required: true },
   address_moo: { type: String, required: true },
@@ -32,11 +32,11 @@ const MemberSchema = new mongoose.Schema({
   province: { type: String, required: true },
   postcode: { type: String, required: true },
   row: { type: String, required: false, default: "" },
-  agent_referrent: { type: String, required: false },
-  channels: {
-    name: { type: String, require: false, default: "" },
-    detail: { type: String, require: false, default: "" }
-  },
+  //agent_referrent: { type: String, required: false },
+  /* channels: {
+     name: { type: String, require: false, default: "" },
+     detail: { type: String, require: false, default: "" }
+   },*/
   bank: {
     name: { type: String, required: false, default: "-" },
     number: { type: String, required: false, default: "-" },
@@ -64,7 +64,7 @@ const MemberSchema = new mongoose.Schema({
   }],
 });
 
-AgentSchema.methods.generateAuthToken = function () {
+/*AgentSchema.methods.generateAuthToken = function () {
   const token = jwt.sign(
     {
       _id: this._id,
@@ -79,9 +79,9 @@ AgentSchema.methods.generateAuthToken = function () {
     }
   );
   return token;
-};
+};*/
 
-const Members = mongoose.model("agent", MemberSchema);
+const Customers = mongoose.model("customer_info", CustomerSchema);
 
 const validate = (data) => {
   const schema = Joi.object({
@@ -90,10 +90,8 @@ const validate = (data) => {
     last_name: Joi.string().required().label("ไม่พบชื่อสกุล"),
     //name: Joi.string().required().label("ไม่พบชื่อเล่น"),
     tel: Joi.string().required().label("ไม่พบเบอร์โทร"),
-    username: Joi.string().required().label("ไม่พบชื่อผู้ใช้งาน"),
-    password: passwordComplexity(complexityOptions)
-      .required()
-      .label("agent_password"),
+    //username: Joi.string().required().label("ไม่พบชื่อผู้ใช้งาน"),
+    // password: passwordComplexity(complexityOptions).required().label("agent_password"),
     address: Joi.string().required().label("ไม่พบที่อยู่-บ้านเลขที่"),
     address_moo: Joi.string().required().label("ไม่พบที่อยู่-หมู่"),
     address_byway: Joi.string().label("ไม่พบที่อยู่-ซอย"),
@@ -102,10 +100,10 @@ const validate = (data) => {
     district: Joi.string().required().label("ไม่พบ เขต/อำเภอ"),
     province: Joi.string().required().label("ไม่พบจังหวัด"),
     postcode: Joi.string().required().label("ไม่พบรหัส ปณ."),
-    channels: {
+    /*channels: {
       name: Joi.string().default(""),
       detail: Joi.string().default(""),
-    },
+    },*/
     bank: {
       name: Joi.string().default("-"),
       number: Joi.string().default("-"),
@@ -129,4 +127,4 @@ const validate = (data) => {
   return schema.validate(data);
 };
 
-module.exports = { Members, validate };
+module.exports = { Customers, validate };
