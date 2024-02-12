@@ -224,20 +224,6 @@ exports.add_stock = async (req, res) => {
         message: "ไม่พบคลังสต็อกนี้",
       });
 
-    /* const one_product_price = await ProductsPrice.findById(one_order.product_price_oid);
-     if (!one_product_price)
-       return res.status(404).send({
-         status: false,
-         message: "ไม่พบแพ็กราคาสินค้านี้",
-       });*/
-
-    /* const one_product = await Products.findById(one_order.product_oid);
-     if (!one_product)
-       return res.status(404).send({
-         status: false,
-         message: "ไม่พบชื่อสินค้านี้",
-       });*/
-
     //-- หาทั้งหมด
     const product_list = await Products.find();
     if (!product_list)
@@ -327,17 +313,6 @@ exports.add_stock = async (req, res) => {
 
       const wait_stockCard = one_stockCard
 
-      //-- เรียก Summary_stock
-      /*  const summary_stockCard = await StocksSummary.findOne({
-          branch_oid: wait_stockCard.branch_oid,
-          stock_info_oid: wait_stockCard.stock_info_oid
-        });
-  
-        if (!summary_stockCard) {
-          return res.status(404)
-            .send({ status: false, message: "ไม่พบสต็อก ", data: check_status });
-        }*/
-
       //--- add รายการเปล่าก่อน
       let data_b = {
 
@@ -361,11 +336,6 @@ exports.add_stock = async (req, res) => {
         return one_item.product_oid === val1
       })
 
-      /*if (search_b) {
-        return res.status(403)
-          .send({ status: false, message: "มีรายการสต็อกนี้แล้ว" });
-      }*/
-
       // -- ไม่มีidซ้ำ ใส่เข้าsummary_stockCard
       if (!search_b) {
         summary_stockCard.items.push(data_b)
@@ -384,15 +354,7 @@ exports.add_stock = async (req, res) => {
             return one_item.product_oid === one_product.id
           })
 
-          let data_a = data_b.qty
-
-          //data_b.qty += search_b.qty
           wait_stockCard_2.balance += search_b.qty
-
-          //wait_stockCard_2.balance = data_a
-
-          // -- map by product_price_oid
-          // data_d = wait_stockCard_2.items.map(obj => data_c.find(o => o.product_price_oid === obj.product_price_oid) || obj)
 
           // -- map by product_oid
           data_d = wait_stockCard_2.items.map(obj => data_c.find(o => o.product_oid === obj.product_oid) || obj)
@@ -407,7 +369,6 @@ exports.add_stock = async (req, res) => {
             { useFindAndModify: false })
         }
         await wait_stockCard_2.save();
-
 
         //-- เก็บgเข้า Stock Log
         await new StockOrders({
