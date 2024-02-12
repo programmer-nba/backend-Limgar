@@ -1,7 +1,7 @@
 //const { Products, validate } = require("../../model/product/product.model");
-const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
+const { Products } = require("../../model/product/product.model");
 //const { ProductsPrice, validate } = require("../../model/product/product_price.model")
-const { ProductsPrice, validate } = require("../../test_SplitPriceAndProduct/model/product/product_price.model");
+const { ProductsPrice, validate } = require("../../model/product/product_price.model");
 var _ = require("lodash");
 
 exports.create = async (req, res) => {

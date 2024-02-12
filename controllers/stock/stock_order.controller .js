@@ -3,7 +3,7 @@ const { StockOrders, validate } = require("../../model/stock/stock_order.model")
 const { Stocks } = require("../../model/stock/stock.model");
 const { Orders } = require("../../model/order/order.model");
 const { StocksSummary } = require("../../model/stock/stock_summary.model");
-const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
+const { Products } = require("../../model/product/product.model");
 const _ = require("lodash");
 
 exports.create = async (req, res) => {

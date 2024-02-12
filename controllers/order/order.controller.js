@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const { Orders, validate } = require("../../model/order/order.model");
-const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
-const { ProductsPrice } = require("../../test_SplitPriceAndProduct/model/product/product_price.model");
+const { Products } = require("../../model/product/product.model");
+const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Agents } = require("../../model/user/agent.model");
 const { Rows } = require("../../model/user/row.model");
 
