@@ -15,14 +15,16 @@ const ProductPriceShema = new mongoose.Schema({
     price_two: { type: Number, required: false },
     price_three: { type: Number, required: false },
     price_four: { type: Number, required: false },
-    price_five: { type: Number, required: false }
+    price_five: { type: Number, required: false },
+    shop_defalut: { type: Number, required: false },
   },
   priceCOD: {
     price_one: { type: Number, required: false },
     price_two: { type: Number, required: false },
     price_three: { type: Number, required: false },
     price_four: { type: Number, required: false },
-    price_five: { type: Number, required: false }
+    price_five: { type: Number, required: false },
+    shop_defalut: { type: Number, required: false },
   },
   isExtraCOD: { type: Boolean, required: false }
 });

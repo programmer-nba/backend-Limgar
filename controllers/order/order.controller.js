@@ -4,6 +4,7 @@ const { Products } = require("../../model/product/product.model");
 const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Agents } = require("../../model/user/agent.model");
 const { Rows } = require("../../model/user/row.model");
+const { Customers } = require("../../model/user/customer.model")
 const moment = require('moment');
 
 var _ = require("lodash");
@@ -11,12 +12,12 @@ var _ = require("lodash");
 exports.create = async (req, res) => {
   var run_order_id = 0;
   try {
+    const agent_order_oid = req.decoded._id
     const { error } = validate(req.body);
     if (error)
       return res
         .status(403)
         .send({ message: error.details[0].message, status: false });
-
 
     //ค้นหาออเดอรซ้ำ
     //const orderlists = await Orders.find({})
@@ -42,13 +43,6 @@ exports.create = async (req, res) => {
     //const orderCard = orderlists.slice(-1)[0]  //get lastest order desc
     const orderCard = orderlists[0]  //get lastest order asc
 
-    /* if (!orderCard) {
-       run_order_id = 0
-     } else {
-       run_order_id = orderCard.order_id + 1;
-     }*/
-
-    //const lastest_order_id = "24021300123"
     const lastest_order_id = orderCard.order_id
     let next_order_id = "";
 
@@ -82,7 +76,9 @@ exports.create = async (req, res) => {
     } else {
       dealerPrice = "price_one"  //ปรับเป็นราคาหน้าร้าน
     }
-
+    const one_customer = await Customers.findOne({
+      tel: req.body.customer_info.tel
+    });
     const priceLists = await ProductsPrice.find();
     const product_name_lists = await Products.find();
     let newPriceLists = _.reduce(priceLists, (result, val4, key4) => {
@@ -125,18 +121,19 @@ exports.create = async (req, res) => {
 
     })
 
+
     await new Orders({
       ...req.body,
       order_id: next_order_id,
       //--hotfix
       //agent_oid: agent_order_one.id,
-      agent_oid: "65b5fc609ec0159bda19aff3",  //fixcode
+      agent_oid: agent_order_oid,  //hotfix
       update_status: {
         name: "รอตรวจสอบ",
         timestamp: new Date().toISOString(),
       },
       payment_type: req.body.payment_type,
-
+      customer_info: req.body.customer_info,
 
       products_total: sum_total_price,
       packages: newData,
