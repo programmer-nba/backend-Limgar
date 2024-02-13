@@ -4,6 +4,7 @@ const { Products } = require("../../model/product/product.model");
 const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Agents } = require("../../model/user/agent.model");
 const { Rows } = require("../../model/user/row.model");
+const moment = require('moment');
 
 var _ = require("lodash");
 
@@ -36,18 +37,25 @@ exports.create = async (req, res) => {
     //let agent_level = req.body.agent_info.level || "price_one"
     const orderlists = await Orders.find().sort({ $natural: -1 }).limit(5); //The 1 will sort ascending (oldest to newest) and -1 will sort descending (newest to oldest.)
 
-    /* const salt = await bcrypt.genSalt(Number(process.env.SALT));
-     const hashPassword = await bcrypt.hash(req.body.password, salt);*/
-
     //รัน เลขออเดอร์
 
     //const orderCard = orderlists.slice(-1)[0]  //get lastest order desc
     const orderCard = orderlists[0]  //get lastest order asc
 
-    if (!orderCard) {
-      run_order_id = 0
+    /* if (!orderCard) {
+       run_order_id = 0
+     } else {
+       run_order_id = orderCard.order_id + 1;
+     }*/
+
+    //const lastest_order_id = "24021300123"
+    const lastest_order_id = orderCard.order_id
+    let next_order_id = "";
+
+    if (isNaN(lastest_order_id) || lastest_order_id === "") {
+      console.log("Invalid input")
     } else {
-      run_order_id = orderCard.order_id + 1;
+      next_order_id = genOrderNumber(lastest_order_id);
     }
 
     const product_orders = req.body.packages;
@@ -71,6 +79,8 @@ exports.create = async (req, res) => {
           dealerPrice = "price_one"  //ปรับเป็นราคาหน้าร้าน
       }
 
+    } else {
+      dealerPrice = "price_one"  //ปรับเป็นราคาหน้าร้าน
     }
 
     const priceLists = await ProductsPrice.find();
@@ -116,56 +126,34 @@ exports.create = async (req, res) => {
     })
 
     await new Orders({
-      //...req.body,
-      order_id: run_order_id,
+      ...req.body,
+      order_id: next_order_id,
+      //--hotfix
       //agent_oid: agent_order_one.id,
-      agent_oid: "65b5fc609ec0159bda19aff3",
+      agent_oid: "65b5fc609ec0159bda19aff3",  //fixcode
       update_status: {
         name: "รอตรวจสอบ",
         timestamp: new Date().toISOString(),
       },
       payment_type: req.body.payment_type,
 
-      //--เลือกรับเอง หรือ จัดส่ง
-      /*  product_pickup_type: {
-          type: "At the distribution center",
-          branch_oid: branch_oid,
-          branch_address: { ...adress },
-          po_id: "A240200001"
-        },*/
-      /* product_pickup_type_2: {
-         type: "Delivery",
-         po_id: "A240200001",
-         customer_name: "sdsdadsasdasd",
-         tel: "13213213213",
-         Destination_address: { ...adress },
-         packages: [
-           {
-             Shipping: "flash",
-             tracking_number: "12s212ss13"
-           }, {
-             Shipping: "kerry",
-             tracking_number: "12s212ss13"
-           }, {
-             Shipping: "thaipost",
-             tracking_number: "12s212ss13"
-           }, {
-             Shipping: "etc.",
-             tracking_number: "-",
-             rider_name: "asdasdka;skd;l",
-             tel: "056516516"
-           }
-         ]
-       },*/
+
       products_total: sum_total_price,
       packages: newData,
       remark: "-"
-    }).save();
+    }).save().then((item) => {
+      if (!item)
+        return res.status(403)
+          .send({ status: false, message: "ส่งข้อมูลออเดอร์ไม่สำเร็จ" });
+      return res.status(200)
+        .send({ status: true, message: "ลงออเดอร์สำเร็จ", data: item });
 
-    const newOrderCard = await Orders.findOne({
-      order_id: run_order_id,
     });
-    return res.status(200).send({ status: true, message: "ลงออเดอร์สำเร็จ", data: newOrderCard });
+
+    /*const newOrderCard = await Orders.findOne({
+      order_id: next_order_id,
+    });
+    return res.status(200).send({ status: true, message: "ลงออเดอร์สำเร็จ", data: newOrderCard });*/
 
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
@@ -322,62 +310,7 @@ exports.holdOrder = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-/*exports.holdOrderById = async (req, res) => {
-  let a = req.params.oid
 
-  try {
-    let a = req.params.oid
-    const requestOrder = await Orders.findOne({
-      _id: req.params.id,
-    });
-
-    if (requestOrder) {
-      // let b = requestOrder.transactions
-      // let a = requestOrder.transactions[b.length - 1].detail.order_id
-      debugger
-      requestOrder.transactions.push({
-        ...req.body,
-        timestamp: Date.now(),
-        approver_user: "mock_admin",
-        order_status: "waiting", //-- รอ admin อนุมัติ
-        remark: req.body.remark,
-      });
-
-      //-- คำนวณยอดคงเหลือหลังขอยั๊ก สินค้าในสต็อก
-      const item = req.body.detail
-
-      switch (item["item_status"]) {
-        case "income":
-          //-- รับเข้าสต๊อก
-          //requestOrder.balance += item.qty;
-          break;
-        case "reserved":
-          //-- ติดจอง
-
-          requestOrder.reserved_qty += item.qty;
-          requestOrder.balance -= item.qty;
-
-          break;
-        case "encash":
-          //-- จำหน่าย หรือ ส่งออกไปแล้ว
-          //requestOrder.reserved_qty -= item.qty;
-          break;
-        //default: ;
-      }
-
-      requestOrder.save();
-      return res.status(200).send({
-        status: true,
-        message: "ส่งคำขอรายการสต็อกสำเร็จ",
-        data: requestOrder,
-      });
-    } else {
-      return res.status(403).send({ message: "เกิดข้อผิดพลาด " + a });
-    }
-  } catch (err) {
-    return res.status(500).send({ message: "Internal Server Error" });
-  }
-};*/
 
 exports.comfirm = async (req, res) => {
   //--วิ่งไปตัดของในคลังได้เลย
@@ -435,5 +368,39 @@ exports.cancel = async (req, res) => {
     }
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+//------------------- utility function ---------------------//
+
+function genOrderNumber(order_id) {
+
+  let old_order_number = order_id.slice(-5); //แกะเลข 5 หลักท้าย
+  let old_date = order_id.substring(0, 6); //แกะเลขวันเดือนปี 6 หลักหน้า
+
+  let currentDate = moment().format('YY-MM-DD'); // ดึงวันที่ปัจจุบัน
+
+  let newDay = parseInt(moment().format('YYMMDD'), 10);
+  let lastestDay = parseInt(moment(old_date, "YYMMDD").format('YYMMDD'), 10);
+
+  if (newDay > lastestDay) {
+    old_order_number = "0" //reset order number
+  }
+
+  const orderNumber = addOneToStringNumber(old_order_number);
+  const fullOrderNumber = currentDate.replace(/-/g, '') + orderNumber.padStart(5, '0');// รวมวันที่และหมายเลขออเดอร์
+
+  return fullOrderNumber;
+};
+
+function addOneToStringNumber(inputString) {
+  const parsedNumber = parseInt(inputString, 10);
+
+  // ตรวจสอบว่า inputString เป็นตัวเลขหรือไม่
+  if (isNaN(parsedNumber)) {
+    return 'Invalid input';
+  } else {
+    let result = (parsedNumber + 1).toString();
+    return result
   }
 };

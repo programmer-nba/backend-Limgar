@@ -2,25 +2,8 @@ const mongoose = require("mongoose");
 const Joi = require("joi");
 
 const OrderSchema = new mongoose.Schema({
-  /* timestamp: { type: Date, required: false, default: Date.now() },
-   order_status: { type: String, required: false },
-   order_id: { type: String, required: false },
-   branch_oid: { type: String, required: false },
-   branchName: { type: String, required: false },
-   isHqAdminOnly: { type: Boolean, required: false },
-   product_oid: { type: String, required: false },
-   product_barcode: { type: String, required: false },
-   product_name: { type: String, required: false },
-   stock_category: { type: String, required: false },
-   item_status: { type: String, required: false },
-   qty: { type: Number, required: false },
-   requester_user: { type: String, required: false },
-   approver_user: { type: String, required: false },
-   remark: { type: String, required: false },
-   update_status: []*/
-
   timestamp: { type: Date, required: false, default: Date.now() },
-  order_id: { type: Number, required: false },
+  order_id: { type: String, required: false },
   branch_oid: { type: String, required: false },
   branchName: { type: String, required: false },
   isHqAdminOnly: { type: Boolean, required: false },
@@ -42,6 +25,19 @@ const OrderSchema = new mongoose.Schema({
   products_total: { type: Number, required: false },
   vat: { type: Number, required: false },
   discount: { type: Number, required: false },
+  customer_info: {
+    customer_oid: { type: String, required: false },
+    name: { type: String, required: false },
+    tel: { type: String, required: false },
+    address: { type: String, required: false },
+    address_moo: { type: String, required: false },
+    address_byway: { type: String, required: false },
+    address_street: { type: String, required: false },
+    subdistrict: { type: String, required: false },
+    district: { type: String, required: false },
+    province: { type: String, required: false },
+    postcode: { type: String, required: false },
+  },
   agent_oid: { type: String, required: false },
   requester_user: { type: String, required: false },
   remark: { type: String, required: false },
@@ -69,6 +65,9 @@ const validate = (data) => {
     payment_type: Joi.string().default("-"),
     //requester_user: Joi.string().label("-"),
     remark: Joi.string().default("-"),
+    customer_info: Joi.object({
+      tel: Joi.string().label("-"),
+    }),
     packages: Joi.array().items(Joi.object({
       count: Joi.number().default(0),
       product_price_info: Joi.object({

@@ -11,7 +11,7 @@ const DeliverySchema_A = mongoose.Schema({
     item_status: { type: String, required: false },
 });
 
-DeliverySchema_A.methods.generateAuthToken = function () {
+/*DeliverySchema_A.methods.generateAuthToken = function () {
     const token = jwt.sign(
         {
             _id: this._id,
@@ -26,7 +26,7 @@ DeliverySchema_A.methods.generateAuthToken = function () {
         }
     );
     return token;
-};
+};*/
 
 /*const DeliverySchema_B = mongoose.Schema({
 
