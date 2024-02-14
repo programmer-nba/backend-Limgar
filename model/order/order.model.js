@@ -27,7 +27,7 @@ const OrderSchema = new mongoose.Schema({
   discount: { type: Number, required: false },
   customer_info: {
     customer_oid: { type: String, required: false },
-    name: { type: String, required: false },
+    customer_name: { type: String, required: false },
     tel: { type: String, required: false },
     address: { type: String, required: false },
     address_moo: { type: String, required: false },
@@ -67,7 +67,7 @@ const validate = (data) => {
     remark: Joi.string().default("-"),
     customer_info: Joi.object({
       tel: Joi.string(),
-      name: Joi.string().label("-"),
+      customer_name: Joi.string().label("-"),
       address: Joi.string().label("-"),
       address_moo: Joi.string().label("-"),
       address_byway: Joi.string().label("-"),
