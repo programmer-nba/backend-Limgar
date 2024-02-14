@@ -66,7 +66,16 @@ const validate = (data) => {
     //requester_user: Joi.string().label("-"),
     remark: Joi.string().default("-"),
     customer_info: Joi.object({
-      tel: Joi.string().label("-"),
+      tel: Joi.string(),
+      name: Joi.string().label("-"),
+      address: Joi.string().label("-"),
+      address_moo: Joi.string().label("-"),
+      address_byway: Joi.string().label("-"),
+      address_street: Joi.string().label("-"),
+      subdistrict: Joi.string().label("-"),
+      district: Joi.string().label("-"),
+      province: Joi.string().label("-"),
+      postcode: Joi.string().label("-"),
     }),
     packages: Joi.array().items(Joi.object({
       count: Joi.number().default(0),
