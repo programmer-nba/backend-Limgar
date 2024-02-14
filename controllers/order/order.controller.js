@@ -188,17 +188,22 @@ exports.getOrderById = async (req, res) => {
 
 exports.getOrderByAgentId = async (req, res) => {
   try {
-    const id = req.params.agent_id;
-    const order = await Orders.findOne({
-      agent_oid: id,
-    });
-    if (!order)
+    const id = req.params.id;
+    const order = await Orders.find();
+    const agent_order = order.filter(
+      (el) => el.agent_oid === id,
+    );
+    // const order = await Orders.findOne({
+    //   agent_oid: id,
+    // });
+    // console.log(order);
+    if (!agent_order)
       return res
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลออเดอร์ไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลออเดอร์สำเร็จ", data: order });
+      .send({ status: true, message: "ดึงข้อมูลออเดอร์สำเร็จ", data: agent_order });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
