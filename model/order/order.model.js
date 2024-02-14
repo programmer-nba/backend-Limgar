@@ -38,6 +38,7 @@ const OrderSchema = new mongoose.Schema({
     province: { type: String, required: false },
     postcode: { type: String, required: false },
   },
+  tracking_number: { type: String, required: false },
   agent_oid: { type: String, required: false },
   requester_user: { type: String, required: false },
   remark: { type: String, required: false },
@@ -91,6 +92,7 @@ const validate = (data) => {
     })),
     //products_total: Joi.number().default(0),
     agent_oid: Joi.string().label("-"),
+    tracking_number: Joi.string().label(""),
     /* agent_info: Joi.object({
        name: Joi.string().label("-"),
        level: Joi.string().label("-"),

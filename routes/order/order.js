@@ -14,6 +14,7 @@ router.post("/add", auth_agent, order.create);
 //router.post("/add", order.create);
 router.get("/", order.getOrderAll);
 router.get("/:id", order.getOrderById);
+router.get("/:agent_id", order.getOrderByAgentId);
 //router.get("/:id", order.getOrderByAgentOid);
 router.put("/:id", order.update);
 router.delete("/:id", order.delete);
@@ -21,6 +22,7 @@ router.delete("/:id", order.delete);
 //router.put("/request/:id", order.holdOrder);//--
 //router.put("/request/:id/_:oid", order.holdOrderById);//--
 router.put("/confirm/:id", auth_admin, order.comfirm);
+router.put("/tracking/:id", auth_admin, order.tracking);
 router.put("/cancel/:id", auth_admin, order.cancel);
 
 
