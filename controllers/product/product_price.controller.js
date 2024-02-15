@@ -1,6 +1,7 @@
 const { Products } = require("../../model/product/product.model");
 const { ProductsPrice, validate } = require("../../model/product/product_price.model");
 var _ = require("lodash");
+const { StocksSummary } = require("../../model/stock/stock_summary.model");
 
 exports.create = async (req, res) => {
   try {
@@ -10,7 +11,6 @@ exports.create = async (req, res) => {
         .status(403)
         .send({ message: error.details[0].message, status: false });
     const product_price = await ProductsPrice.findOne({
-      branch_id: req.body.branch_id,
       product_oid: req.body.product_oid,
       amount: req.body.amount,
     });
@@ -20,18 +20,23 @@ exports.create = async (req, res) => {
           .status(401)
           .send({ status: false, message: "แพ็กเกจราคาสินค้านี้มีในระบบแล้ว" });
       }
-    //--HotFix branch HQ only
+
+  
+
     await new ProductsPrice({
       ...req.body,
       isHqAdminOnly: true,
-      branch_oid: "65aa1506f866895c9585e033",
-      branchName: "HQ",
-
-      /*  isExtraCOD: (amount) => {
-          if (amount >= 5)
-            return true //แพ็กเกิน 5 ขวด ชาร์จค่าส่งเพิ่ม
-        },*/
     }).save();
+
+    const stock_summary =  await  StocksSummary.findOne({ items: { $elemMatch: { product_oid: req.body.product_oid } } });
+    if (stock_summary) {
+      stock_summary.items.forEach(async (item) => {
+        if (item.product_oid === req.body.product_oid) {
+          item.qty += req.body.amount
+          stock_summary.save();
+        }
+      });
+    }
 
     //--HotFix add product price oid
     /*const product_price2 = await ProductsPrice.findOne({

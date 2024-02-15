@@ -5,6 +5,7 @@ const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Agents } = require("../../model/user/agent.model");
 const { Rows } = require("../../model/user/row.model");
 const { Customers } = require("../../model/user/customer.model")
+const { StocksSummary } = require("../../model/stock/stock_summary.model");
 const moment = require('moment');
 
 var _ = require("lodash");
@@ -153,7 +154,7 @@ exports.create = async (req, res) => {
     return res.status(200).send({ status: true, message: "ลงออเดอร์สำเร็จ", data: newOrderCard });*/
 
   } catch (err) {
-    return res.status(500).send({ message: "Internal Server Error" });
+    return res.status(500).send({ message: err.message });
   }
 };
 
@@ -343,6 +344,24 @@ exports.comfirm = async (req, res) => {
         timestamp: new Date().toISOString(),
       });
       updateStatus.save();
+      updateStatus.packages.forEach(async (element) => {
+          const amount  = element.product_price_info.amount
+          const product_id = element.product_price_info.product_oid
+         
+          // ส่วนสินค้าราคา
+          const deleteproduct = await ProductsPrice.findOneAndDelete({ product_oid: product_id , amount: amount });
+          // ส่วนสต็อก
+          const stock = await StocksSummary.find({ items: { $elemMatch: { product_oid: product_id } } });
+          stock.forEach(async (element) => {
+            element.items.forEach(async (item) => {
+              if (item.product_oid === product_id) {
+                item.qty -= amount
+                element.save();
+              }
+            });
+          });
+
+      }); 
       return res.status(200).send({
         status: true,
         message: "อนุมัติออเดอร์สำเร็จ",
