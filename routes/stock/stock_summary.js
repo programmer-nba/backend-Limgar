@@ -17,6 +17,9 @@ router.post("/add_stock/:id", stock_summary.add_stock);//--
 //router.put("/request/:id/_:oid", stock.holdOrderById);//--
 //router.put("/confirm/:id", stock_summary.comfirm);
 //router.put("/cancel/:id", stock_summary.cancel);
+//เอาสินค้าออกจากสต็อก
+router.put("/out_stock/:id", stock_summary.out_stock);
+
 //ลบสินค้าในสต็อก
 router.delete("/delete_stock/:id", stock_summary.delete_stock);
 //ลบสต็อกทั้งหมด
