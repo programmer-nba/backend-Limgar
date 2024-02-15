@@ -27,11 +27,20 @@ exports.create = async (req, res) => {
         status: false,
         message: "มีสต็อกนี้ในคลังแล้ว",
       });
+    const id = req.body.branch_oid
+    const branch_info = await Branchs.findById(id);
+    if (!branch_info)
+      return res.status(404).send({
+        status: false,
+        message: "ไม่พบชื่อสาขา",
+      });
+
 
     await new StocksSummary({
       ...req.body,
       //--initial first transaction stock
       createdDatetime: Date.now(),
+      branch_name: branch_info.name,
       balance: 0,
       reserved_qty: 0,
       total_product: 0
@@ -63,6 +72,7 @@ exports.create_B = async (req, res) => {
       return res.status(403)
         .send({ message: "จำนวนไม่ถูกต้อง", qty: data.qty, status: false });
 
+    //-- รอแก้
     const one_order = data;
     const one_stock_list = await Stocks.findById(one_order.stock_info_oid);
 
@@ -76,7 +86,7 @@ exports.create_B = async (req, res) => {
     const stock_card = one_stock_list;
     const item_log1 = {
       order_oid: one_order.order_oid,
-      stock_info_oid: stock_card.id,
+      // stock_info_oid: stock_card.id,
       branch_oid: stock_card.branch_oid,
       product_oid: one_order.product_oid,
       stock_category: stock_card.stock_category,
@@ -173,7 +183,7 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
-    Stocks.findByIdAndDelete(id, { useFindAndModify: false })
+    StocksSummary.findByIdAndDelete(id, { useFindAndModify: false })
       .then((item) => {
         if (!item)
           return res
@@ -204,7 +214,7 @@ exports.holdOrderById = async (req, res) => {
 
 exports.add_stock = async (req, res) => {
   try {
-
+    const id = req.params.id
     let data = req.body
     const { error } = validate(data);
     if (error)
@@ -216,7 +226,8 @@ exports.add_stock = async (req, res) => {
           .send({ message: "จำนวนไม่ถูกต้อง", qty: data.qty, status: false });*/
 
     const one_order = data;
-    const one_stock_list = await Stocks.findById(one_order.stock_info_oid);
+    //const one_stock_list = await StocksSummary.findById(one_order.stock_info_oid);
+    const one_stock_list = await StocksSummary.findById(id);
 
     if (!one_stock_list)
       return res.status(404).send({
@@ -236,7 +247,7 @@ exports.add_stock = async (req, res) => {
     //-- สร้างobjเก็บคำสั่ง
     const one_stockCard = new Schema({
       order_oid: { type: String },
-      stock_info_oid: { type: String },
+      //stock_info_oid: { type: String },
       branch_oid: { type: String },
       product_oid: [{ type: String }],
       //product_price_oid: { type: String },
@@ -259,7 +270,6 @@ exports.add_stock = async (req, res) => {
     //-- เรียก Summary_stock
     const summary_stockCard = await StocksSummary.findOne({
       branch_oid: one_stock_list.branch_oid,
-      stock_info_oid: one_stock_list.id
     });
 
     if (!summary_stockCard) {
@@ -278,8 +288,8 @@ exports.add_stock = async (req, res) => {
       if (one_product.isImported) {
         return res.status(401).send({
           status: false,
-          message: "สินค้านี้ ถูกนำเข้าคลังแล้ว (stock_info)",
-          data: one_product.stock_info_oid,
+          message: "สินค้านี้ ถูกนำเข้าคลังแล้ว (branch)",
+          data: one_product
         })
       }
 
@@ -296,7 +306,7 @@ exports.add_stock = async (req, res) => {
       }, 0)
 
 
-      one_stockCard.stock_info_oid = one_stock_list.id
+      //one_stockCard.stock_info_oid = one_stock_list.id
       one_stockCard.branch_oid = one_stock_list.branch_oid
       one_stockCard.product_oid = one_product.id
       one_stockCard.product_name = one_product.product_name || "-"
@@ -408,7 +418,7 @@ exports.income = async (req, res) => {
           .send({ message: "จำนวนไม่ถูกต้อง", qty: data.qty, status: false });*/
 
     const one_order = data;
-    const one_stock_list = await Stocks.findById(one_order.stock_info_oid);
+    // const one_stock_list = await Stocks.findById(one_order.stock_info_oid);
 
     if (!one_stock_list)
       return res.status(404).send({
@@ -442,7 +452,7 @@ exports.income = async (req, res) => {
     //-- สร้างobjเก็บคำสั่ง
     const one_stockCard = new Schema({
       order_oid: { type: String },
-      stock_info_oid: { type: String },
+      // stock_info_oid: { type: String },
       branch_oid: { type: String },
       product_oid: [{ type: String }],
       product_price_oid: { type: String },
@@ -461,7 +471,7 @@ exports.income = async (req, res) => {
     //-- เรียก Summary_stock
     const summary_stockCard = await StocksSummary.findOne({
       branch_oid: one_stock_list.branch_oid,
-      stock_info_oid: one_stock_list.id
+      //  stock_info_oid: one_stock_list.id
     });
 
     if (!summary_stockCard) {
@@ -481,7 +491,7 @@ exports.income = async (req, res) => {
         return one_item.id === one_product_price.product_oid
       })
 
-      one_stockCard.stock_info_oid = one_stock_list.id
+      //one_stockCard.stock_info_oid = one_stock_list.id
       one_stockCard.branch_oid = one_stock_list.branch_oid
       one_stockCard.product_oid = one_product_price.product_oid
       one_stockCard.product_name = one_product.product_name || "-"
