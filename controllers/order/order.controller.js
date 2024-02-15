@@ -365,6 +365,8 @@ exports.comfirm = async (req, res) => {
             }
           });
         });
+        // หาค่าคอมมิชชั่น
+
 
       });
       return res.status(200).send({
