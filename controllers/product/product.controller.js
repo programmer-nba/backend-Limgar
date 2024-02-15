@@ -66,7 +66,7 @@ exports.create = async (req, res) => {
 
     }).save();*/
 
-    return res.status(200).send({ status: true, message: "เพิ่มสินค้าสำเร็จ" });
+    //return res.status(200).send({ status: true, message: "เพิ่มสินค้าสำเร็จ" });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -218,24 +218,22 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
-    
+
     const product = await Products.findById(id);
-    if (!product)
-    {
+    if (!product) {
       return res.status(404).send({ status: false, message: "ไม่พบข้อมูลนี้" });
     }
 
     //ค้นหา สินค้าที่มีในสต็อก
     const stock = await StocksSummary.find({ items: { $elemMatch: { product_oid: id } } });
     stock.forEach(async (element) => {
-      await StocksSummary.findByIdAndUpdate(element._id, { $pull: { items: { product_oid: id } } }, { useFindAndModify: false }); 
+      await StocksSummary.findByIdAndUpdate(element._id, { $pull: { items: { product_oid: id } } }, { useFindAndModify: false });
     });
     const deletes = await Products.findByIdAndDelete(id, { useFindAndModify: false });
-    if (!deletes)
-    {
+    if (!deletes) {
       return res.status(404).send({ status: false, message: "ลบข้อมูลไม่สำเร็จ" });
     }
-    return res.status(200).send({ status: true, message: stock  });
+    return res.status(200).send({ status: true, message: stock });
 
 
   } catch (err) {

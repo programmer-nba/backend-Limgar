@@ -82,17 +82,22 @@ exports.create = async (req, res) => {
     });
     const priceLists = await ProductsPrice.find();
     const product_name_lists = await Products.find();
-    let newPriceLists = _.reduce(priceLists, (result, val4, key4) => {
-      let c = val4
+    let newPriceLists = _.reduce(priceLists, (result, priceList, key4) => {
+      //let c = val4
       let b = _.find(product_name_lists, (product_name, index8) => {
-        return product_name.id = val4.id
+        return product_name.id == priceList.product_oid
       })
-      result[val4.id] = {
-        product_price_oid: val4.id,
+      /*   if (!b) {
+           return res.status(404)
+             .send({ status: false, message: "ไม่พบข้อมูลสินค้า" });
+         }*/
+
+      result[priceList.id] = {
+        product_price_oid: priceList.id,
         product_oid: b.id,
         product_name: b.product_name,
-        amount: val4.amount,
-        price: val4.price[dealerPrice]
+        amount: priceList.amount,
+        price: priceList.price[dealerPrice]
       }
       return result;
     }, {})
@@ -345,23 +350,23 @@ exports.comfirm = async (req, res) => {
       });
       updateStatus.save();
       updateStatus.packages.forEach(async (element) => {
-          const amount  = element.product_price_info.amount
-          const product_id = element.product_price_info.product_oid
-         
-          // ส่วนสินค้าราคา
-          const deleteproduct = await ProductsPrice.findOneAndDelete({ product_oid: product_id , amount: amount });
-          // ส่วนสต็อก
-          const stock = await StocksSummary.find({ items: { $elemMatch: { product_oid: product_id } } });
-          stock.forEach(async (element) => {
-            element.items.forEach(async (item) => {
-              if (item.product_oid === product_id) {
-                item.qty -= amount
-                element.save();
-              }
-            });
-          });
+        const amount = element.product_price_info.amount
+        const product_id = element.product_price_info.product_oid
 
-      }); 
+        // ส่วนสินค้าราคา
+        const deleteproduct = await ProductsPrice.findOneAndDelete({ product_oid: product_id, amount: amount });
+        // ส่วนสต็อก
+        const stock = await StocksSummary.find({ items: { $elemMatch: { product_oid: product_id } } });
+        stock.forEach(async (element) => {
+          element.items.forEach(async (item) => {
+            if (item.product_oid === product_id) {
+              item.qty -= amount
+              element.save();
+            }
+          });
+        });
+
+      });
       return res.status(200).send({
         status: true,
         message: "อนุมัติออเดอร์สำเร็จ",
