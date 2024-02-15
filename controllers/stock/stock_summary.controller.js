@@ -289,7 +289,7 @@ exports.add_stock = async (req, res) => {
         return res.status(401).send({
           status: false,
           message: "สินค้านี้ ถูกนำเข้าคลังแล้ว (branch)",
-          data: one_product
+          data: one_product.branch_oid
         })
       }
 
@@ -390,7 +390,15 @@ exports.add_stock = async (req, res) => {
             timestamp: Date.now(),
             name: "approved",
           }
-        }).save();
+        }).save().then((item) => {
+          if (!item) {
+            return res.status(403)
+              .send({ message: "เกิดข้อผิดพลาด product_oid : " + val1 });
+          }
+
+          return res.status(200)
+            .send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ", data: item });
+        });
 
       }
 

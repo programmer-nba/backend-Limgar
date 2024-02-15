@@ -26,22 +26,27 @@ exports.create = async (req, res) => {
       isOutStock: false,
       isImported: false,
       product_image: "16_4k32_P7uDWvZMflvVXUKcI5jRNLfu_", //--HotFix
-    }).save();
-
-    //--hotfix add data to product_price
-    const product2 = await Products.findOne({
-      //product_name: req.body.product_name,
-      product_barcode: req.body.product_barcode,
+    }).save().then((item) => {
+      if (!item) {
+        return res.status(404).send({ message: "ไม่พบสินค้านี้" });
+      }
+      return res.status(200).send({ message: "เพิ่มข้อมูลสินค้าสำเร็จ", data: item });
     });
 
-    await new ProductsPrice({
+    //--hotfix add data to product_price
+    /* const product2 = await Products.findOne({
+       //product_name: req.body.product_name,
+       product_barcode: req.body.product_barcode,
+     });*/
+
+    /*await new ProductsPrice({
       //--hotfix initial first product's Price
       //...req.body,
       isHqAdminOnly: true,
       product_oid: product2.id,
       branch_oid: "65aa1506f866895c9585e033",
       //branchName: "HQ",
-      amount: 1,
+      //amount: 0,
       price: {
         price_one: 0,
         price_two: 0,
@@ -58,7 +63,7 @@ exports.create = async (req, res) => {
       },
       isExtraCOD: false
 
-    }).save();
+    }).save();*/
 
     return res.status(200).send({ status: true, message: "เพิ่มสินค้าสำเร็จ" });
   } catch (err) {
