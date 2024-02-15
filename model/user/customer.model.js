@@ -30,7 +30,7 @@ const Customers = mongoose.model("customer_info", CustomerSchema);
 const validate = (data) => {
   const schema = Joi.object({
 
-    name: Joi.string().label("ไม่พบชื่อเล่น"),
+    name: Joi.string().label("ไม่พบชื่อลูกค้า"),
     tel: Joi.string().required().label("ไม่พบเบอร์โทร"),
 
     address: Joi.string().required().label("ไม่พบที่อยู่-บ้านเลขที่"),
