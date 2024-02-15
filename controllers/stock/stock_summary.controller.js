@@ -692,11 +692,13 @@ exports.delete_stock = async (req, res) => {
       stock.items = stock.items.filter(item => item.product_oid !== product);
       
     });
+
     const data ={
       items: stock.items,
       balance: stock.items.reduce((acc, val) => acc + val.qty, 0),
       total_product: stock.items.length
     }
+
     const edit = await StocksSummary.findByIdAndUpdate(id, data, {new: true});
     product_oid.forEach(async (product) => {
       const product_delete = await Products.findByIdAndDelete(product);
@@ -704,6 +706,24 @@ exports.delete_stock = async (req, res) => {
     
     return res.status(200).send({ message: "ลบสินค้าในสต็อกสำเร็จ", data: edit});  
 
+  }catch(err){
+    return res.status(500).send({ message: err.message });
+  }
+}
+
+// ลบสต็อกและ สินค้าในนั้นด้วย
+exports.delete_stock_all = async (req, res) => {
+  try{
+    const id = req.params.id;
+    const stock = await StocksSummary.findById(id);
+    if(!stock){
+      return res.status(404).send({ message: "ไม่พบสต็อกสินค้า"});
+    }
+    const product_oid = stock.items.map(item => item.product_oid);
+    const delete_product = await Products.deleteMany({_id: {$in: product_oid}});
+    const delete_stock = await StocksSummary.findByIdAndDelete(id);
+    return res.status(200).send({ message: "ลบสต็อกสำเร็จ", data: delete_stock});
+    
   }catch(err){
     return res.status(500).send({ message: err.message });
   }
