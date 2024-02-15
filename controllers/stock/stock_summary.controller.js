@@ -667,3 +667,34 @@ exports.cancel = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
+
+// ลบสินค้าในสต็อกสินค้า
+exports.delete_stock = async (req, res) => {
+  try{
+    const id = req.params.id;
+    const  product_oid = req.body.product_oid;
+    const stock = await StocksSummary.findById(id);
+    if(!stock){
+      return res.status(404).send({ message: "ไม่พบสต็อกสินค้า"});
+    }
+    // product_oid เป็น array ทำการลบสินค้าที่ต้องการ
+    product_oid.forEach(async (product) => {
+      stock.items = stock.items.filter(item => item.product_oid !== product);
+      
+    });
+    const data ={
+      items: stock.items,
+      balance: stock.items.reduce((acc, val) => acc + val.qty, 0),
+      total_product: stock.items.length
+    }
+    const edit = await StocksSummary.findByIdAndUpdate(id, data, {new: true});
+    product_oid.forEach(async (product) => {
+      const product_delete = await Products.findByIdAndDelete(product);
+    });
+    
+    return res.status(200).send({ message: "ลบสินค้าในสต็อกสำเร็จ", data: edit});  
+
+  }catch(err){
+    return res.status(500).send({ message: err.message });
+  }
+}
