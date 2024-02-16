@@ -67,7 +67,7 @@ const validate = (data) => {
     //requester_user: Joi.string().label("-"),
     remark: Joi.string().default("-"),
     customer_info: Joi.object({
-      tel: Joi.string(),
+      tel: Joi.string().label("tel"),
       customer_name: Joi.string().label("-"),
       address: Joi.string().label("-"),
       address_moo: Joi.string().label("-"),

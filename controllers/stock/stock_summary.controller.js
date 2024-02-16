@@ -374,6 +374,7 @@ exports.add_stock = async (req, res) => {
           wait_stockCard_2.items = data_d
           wait_stockCard_2.total_product = wait_stockCard_2.items.length
 
+          //เช็คว่านำสินค้าเข้าคลังแล้ว
           await Products.findByIdAndUpdate(data_b.product_oid,
             { isImported: true },
             { useFindAndModify: false })
@@ -390,22 +391,21 @@ exports.add_stock = async (req, res) => {
             timestamp: Date.now(),
             name: "approved",
           }
-        }).save().then((item) => {
-          if (!item) {
-            return res.status(403)
-              .send({ message: "เกิดข้อผิดพลาด product_oid : " + val1 });
-          }
-
-          return res.status(200)
-            .send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ", data: item });
-        });
-
+        }).save();
       }
 
     }
+    //-- เรียก Summary_stock
+    const one_stock_list2 = await StocksSummary.findById(id);
+    if (!one_stock_list2) {
+      return res.status(404).send({
+        status: false,
+        message: "ไม่พบคลังสต็อกนี้ (one_stock_list2)",
+      });
+    }
 
     return res.status(200)
-      .send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ" });
+      .send({ status: true, message: "บันทึกรายการเคลื่อนไหวสต็อกสำเร็จ", data: one_stock_list2 });
 
   }
   catch (err) {
@@ -690,29 +690,29 @@ exports.cancel = async (req, res) => {
 exports.out_stock = async (req, res) => {
   try {
     const id = req.params.id;
-    const  product_oid = req.body.product_oid;
+    const product_oid = req.body.product_oid;
     const stock = await StocksSummary.findById(id);
-    if(!stock){
-      return res.status(404).send({ message: "ไม่พบสต็อกสินค้า"});
+    if (!stock) {
+      return res.status(404).send({ message: "ไม่พบสต็อกสินค้า" });
     }
     // product_oid เป็น array ทำการลบสินค้าที่ต้องการ
     product_oid.forEach(async (product) => {
       stock.items = stock.items.filter(item => item.product_oid !== product);
     });
 
-    const data ={
+    const data = {
       items: stock.items,
       balance: stock.items.reduce((acc, val) => acc + val.qty, 0),
       total_product: stock.items.length
     }
 
-    const edit = await StocksSummary.findByIdAndUpdate(id, data, {new: true});
+    const edit = await StocksSummary.findByIdAndUpdate(id, data, { new: true });
     product_oid.forEach(async (product) => {
-      const product_delete = await Products.findByIdAndUpdate(product, {isImported: false}, {new: true});
+      const product_delete = await Products.findByIdAndUpdate(product, { isImported: false }, { new: true });
     });
 
-    return res.status(200).send({ message: "เอาสินค้าในออกสต็อกสำเร็จ", data: edit});
-    
+    return res.status(200).send({ message: "เอาสินค้าในออกสต็อกสำเร็จ", data: edit });
+
 
   } catch (err) {
     return res.status(500).send({ message: err.message });
@@ -721,51 +721,51 @@ exports.out_stock = async (req, res) => {
 
 // ลบสินค้าในสต็อกสินค้า
 exports.delete_stock = async (req, res) => {
-  try{
+  try {
     const id = req.params.id;
-    const  product_oid = req.body.product_oid;
+    const product_oid = req.body.product_oid;
     const stock = await StocksSummary.findById(id);
-    if(!stock){
-      return res.status(404).send({ message: "ไม่พบสต็อกสินค้า"});
+    if (!stock) {
+      return res.status(404).send({ message: "ไม่พบสต็อกสินค้า" });
     }
     // product_oid เป็น array ทำการลบสินค้าที่ต้องการ
     product_oid.forEach(async (product) => {
       stock.items = stock.items.filter(item => item.product_oid !== product);
-      
+
     });
 
-    const data ={
+    const data = {
       items: stock.items,
       balance: stock.items.reduce((acc, val) => acc + val.qty, 0),
       total_product: stock.items.length
     }
 
-    const edit = await StocksSummary.findByIdAndUpdate(id, data, {new: true});
+    const edit = await StocksSummary.findByIdAndUpdate(id, data, { new: true });
     product_oid.forEach(async (product) => {
       const product_delete = await Products.findByIdAndDelete(product);
     });
-    
-    return res.status(200).send({ message: "เอาสินค้าในสต็อกออกแล้ว", data: edit});  
 
-  }catch(err){
+    return res.status(200).send({ message: "เอาสินค้าในสต็อกออกแล้ว", data: edit });
+
+  } catch (err) {
     return res.status(500).send({ message: err.message });
   }
 }
 
 // ลบสต็อกและ สินค้าในนั้นด้วย
 exports.delete_stock_all = async (req, res) => {
-  try{
+  try {
     const id = req.params.id;
     const stock = await StocksSummary.findById(id);
-    if(!stock){
-      return res.status(404).send({ message: "ไม่พบสต็อกสินค้า"});
+    if (!stock) {
+      return res.status(404).send({ message: "ไม่พบสต็อกสินค้า" });
     }
     const product_oid = stock.items.map(item => item.product_oid);
-    const delete_product = await Products.deleteMany({_id: {$in: product_oid}});
+    const delete_product = await Products.deleteMany({ _id: { $in: product_oid } });
     const delete_stock = await StocksSummary.findByIdAndDelete(id);
-    return res.status(200).send({ message: "ลบสต็อกสำเร็จ", data: delete_stock});
+    return res.status(200).send({ message: "ลบสต็อกสำเร็จ", data: delete_stock });
 
-  }catch(err){
+  } catch (err) {
     return res.status(500).send({ message: err.message });
   }
 }
