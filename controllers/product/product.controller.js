@@ -24,7 +24,7 @@ exports.create = async (req, res) => {
       }
     await new Products({
       ...req.body,
-      isOutStock: false,
+      isSetPrice: false,
       isImported: false,
       product_image: "16_4k32_P7uDWvZMflvVXUKcI5jRNLfu_", //--HotFix
     }).save().then((item) => {
@@ -66,7 +66,7 @@ exports.create = async (req, res) => {
 
     }).save();*/
 
-    //return res.status(200).send({ status: true, message: "เพิ่มสินค้าสำเร็จ" });
+    // return res.status(200).send({ status: true, message: "เพิ่มสินค้าสำเร็จ" });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }

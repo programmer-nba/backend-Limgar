@@ -21,14 +21,14 @@ exports.create = async (req, res) => {
           .send({ status: false, message: "แพ็กเกจราคาสินค้านี้มีในระบบแล้ว" });
       }
 
-  
+
 
     await new ProductsPrice({
       ...req.body,
       isHqAdminOnly: true,
     }).save();
 
-    const stock_summary =  await  StocksSummary.findOne({ items: { $elemMatch: { product_oid: req.body.product_oid } } });
+    const stock_summary = await StocksSummary.findOne({ items: { $elemMatch: { product_oid: req.body.product_oid } } });
     if (stock_summary) {
       stock_summary.items.forEach(async (item) => {
         if (item.product_oid === req.body.product_oid) {
@@ -52,9 +52,11 @@ exports.create = async (req, res) => {
       product_oid: req.body.product_oid,
       amount: req.body.amount,
     });
-    return res.status(200).send({ status: true, message: "เพิ่มราคาสินค้าสำเร็จ", data: product_price_one });
+    return res.status(200)
+      .send({ status: true, message: "เพิ่มราคาสินค้าสำเร็จ", data: product_price_one });
   } catch (err) {
-    return res.status(500).send({ message: "Internal Server Error" });
+    return res.status(500)
+      .send({ message: "Internal Server Error" });
   }
 };
 
