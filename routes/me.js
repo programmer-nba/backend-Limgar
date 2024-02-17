@@ -3,6 +3,7 @@ require("dotenv").config();
 
 const { Admins } = require("../model/user/admin.model");
 const { Agents } = require("../model/user/agent.model");
+const { Rows } = require("../model/user/row.model")
 const auth = require("../lib/auth.me");
 
 router.post("/", auth, async (req, res) => {
@@ -26,16 +27,26 @@ router.post("/", auth, async (req, res) => {
     if (decoded && decoded.row === "agent") {
       const id = decoded._id;
       const agent = await Agents.findOne({ _id: id });
+
+
       if (!agent) {
         return res.status(400)
           .send({ message: "Invalid Data", status: false });
       } else {
+        //--ไปหาRow 
+        const row = await Rows.findById(agent.row)
+        if (!row) {
+          return res.status(400)
+            .send({ message: "Invalid Data (no row)", status: false });
+        }
+        //else {
         return res.status(200)
           .send({
             name: agent.name,
             username: agent.username,
-            level: "agent",
-            position: agent.agent_position,
+            //level: row.position,
+            level_name: row.level_name,
+            position: row.position,
             agent_oid: agent.id,
             active: agent.active,
             allow_term_con: {
