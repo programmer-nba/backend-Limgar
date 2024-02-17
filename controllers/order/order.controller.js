@@ -11,7 +11,7 @@ const moment = require('moment');
 var _ = require("lodash");
 
 exports.create = async (req, res) => {
-  var run_order_id = 0;
+  //var run_order_id = 0;
   try {
     const agent_order_oid = req.decoded._id
     const { error } = validate(req.body);
@@ -24,6 +24,11 @@ exports.create = async (req, res) => {
     //const orderlists = await Orders.find({})
 
     const agent_order_one = await Agents.findOne({ _id: req.decoded._id })
+
+    //ถ้ารับเงินโอน ไม่ต้องส่งที่อยู่
+    const payment_type = req.body.payment_type
+    if (payment_type == "โอน") { }
+
 
     let agent_level = ""  //สมมติว่า ส่งมาเป็น Lv1
     if (!agent_order_one.row || agent_order_one.row === "") {
@@ -77,9 +82,10 @@ exports.create = async (req, res) => {
     } else {
       dealerPrice = "price_one"  //ปรับเป็นราคาหน้าร้าน
     }
-    const one_customer = await Customers.findOne({
-      tel: req.body.customer_info.tel
-    });
+    /* const one_customer = await Customers.findOne({
+       tel: req.body.customer_info.tel
+     });*/
+
     const priceLists = await ProductsPrice.find();
     const product_name_lists = await Products.find();
     let newPriceLists = _.reduce(priceLists, (result, priceList, key4) => {
@@ -87,15 +93,21 @@ exports.create = async (req, res) => {
       let b = _.find(product_name_lists, (product_name, index8) => {
         return product_name.id == priceList.product_oid
       })
-      /*   if (!b) {
-           return res.status(404)
-             .send({ status: false, message: "ไม่พบข้อมูลสินค้า" });
-         }*/
+
+      //ถ้าหาชื่อไม่เจอ ใส่-
+      if (!b) {
+        /*  return res.status(404)
+            .send({ status: false, message: "ไม่พบข้อมูลสินค้า" });*/
+        b = {
+          product_oid: "-",
+          product_name: "-",
+        }
+      }
 
       result[priceList.id] = {
         product_price_oid: priceList.id,
-        product_oid: b.id,
-        product_name: b.product_name,
+        product_oid: b.id || "-",
+        product_name: b.product_name || "-",
         amount: priceList.amount,
         price: priceList.price[dealerPrice]
       }
