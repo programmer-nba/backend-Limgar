@@ -226,7 +226,6 @@ exports.add_stock = async (req, res) => {
           .send({ message: "จำนวนไม่ถูกต้อง", qty: data.qty, status: false });*/
 
     const one_order = data;
-    //const one_stock_list = await StocksSummary.findById(one_order.stock_info_oid);
     const one_stock_list = await StocksSummary.findById(id);
 
     if (!one_stock_list)
@@ -242,7 +241,6 @@ exports.add_stock = async (req, res) => {
         status: false,
         message: "ไม่พบรายชื่อสินค้า",
       });
-
 
     //-- สร้างobjเก็บคำสั่ง
     const one_stockCard = new Schema({
@@ -277,7 +275,6 @@ exports.add_stock = async (req, res) => {
         .send({ status: false, message: "ไม่พบสต็อก " });
     }
 
-
     // _.forIn(one_order.product_oid, async (val1, key1) => {
     for (let val1 of one_order.product_oid) {
 
@@ -304,7 +301,6 @@ exports.add_stock = async (req, res) => {
       let data_e = product_price_list.reduce((acc, val2, key2) => {
         return acc += val2.amount;
       }, 0)
-
 
       //one_stockCard.stock_info_oid = one_stock_list.id
       one_stockCard.branch_oid = one_stock_list.branch_oid
@@ -336,10 +332,6 @@ exports.add_stock = async (req, res) => {
         //product_price: wait_stockCard
         qty: wait_stockCard.qty
       }
-      /*  // -- หารายการสต๊อกซ้ำ 
-        let search_b = _.find(summary_stockCard.items, (one_item) => {
-          return one_item.product_price_oid === wait_stockCard.product_price_oid
-        })*/
 
       // -- หารายการสต๊อกซ้ำ 
       let search_b = _.find(summary_stockCard.items, (one_item) => {
@@ -358,7 +350,6 @@ exports.add_stock = async (req, res) => {
         const id = summary_stockCard.id
         const wait_stockCard_2 = await StocksSummary.findById(id)
         if (wait_stockCard_2) {
-
 
           let search_b = _.find(wait_stockCard_2.items, (one_item) => {
             return one_item.product_oid === one_product.id
@@ -421,12 +412,7 @@ exports.income = async (req, res) => {
       return res.status(403)
         .send({ message: error.details[0].message, status: false });
 
-    /*  if (data.qty === 0)
-        return res.status(403)
-          .send({ message: "จำนวนไม่ถูกต้อง", qty: data.qty, status: false });*/
-
     const one_order = data;
-    // const one_stock_list = await Stocks.findById(one_order.stock_info_oid);
 
     if (!one_stock_list)
       return res.status(404).send({
@@ -441,13 +427,6 @@ exports.income = async (req, res) => {
         message: "ไม่พบแพ็กราคาสินค้านี้",
       });
 
-    /* const one_product = await Products.findById(one_order.product_oid);
-     if (!one_product)
-       return res.status(404).send({
-         status: false,
-         message: "ไม่พบชื่อสินค้านี้",
-       });*/
-
     //-- หาทั้งหมด
     const product_list = await Products.find();
     if (!product_list)
@@ -455,7 +434,6 @@ exports.income = async (req, res) => {
         status: false,
         message: "ไม่พบรายชื่อสินค้า",
       });
-
 
     //-- สร้างobjเก็บคำสั่ง
     const one_stockCard = new Schema({
@@ -516,17 +494,6 @@ exports.income = async (req, res) => {
 
       const wait_stockCard = one_stockCard
 
-      //-- เรียก Summary_stock
-      /*  const summary_stockCard = await StocksSummary.findOne({
-          branch_oid: wait_stockCard.branch_oid,
-          stock_info_oid: wait_stockCard.stock_info_oid
-        });
-  
-        if (!summary_stockCard) {
-          return res.status(404)
-            .send({ status: false, message: "ไม่พบสต็อก ", data: check_status });
-        }*/
-
       //--- add รายการเปล่าก่อน
       let data_b = {
 
@@ -539,28 +506,6 @@ exports.income = async (req, res) => {
         // total_count: 0,
         qty: wait_stockCard.qty
       }
-      /*  // -- หารายการสต๊อกซ้ำ 
-        let search_b = _.find(summary_stockCard.items, (one_item) => {
-          return one_item.product_price_oid === wait_stockCard.product_price_oid
-        })*/
-
-      // -- หารายการสต๊อกซ้ำ 
-      /*  let search_b = _.find(summary_stockCard.items, (one_item) => {
-          return one_item.product_oid === one_product.id
-        })*/
-
-      /*if (search_b) {
-        return res.status(403)
-          .send({ status: false, message: "มีรายการสต็อกนี้แล้ว" });
-      }*/
-
-      // -- ไม่มีidซ้ำ ใส่เข้าsummary_stockCard
-      // if (search_b) {
-      //let data_a = search_b.qty
-
-
-      //summary_stockCard.items.push(data_b)
-      //await summary_stockCard.save();
 
       //-- ใส่กลับเข้าไปใน items
       let data_c = []
@@ -602,16 +547,7 @@ exports.income = async (req, res) => {
             name: "approved",
           }
         }).save();
-
       }
-
-
-
-
-      // } else {
-      //return res.status(403).send({ message: "เกิดข้อผิดพลาด search:", search_b });
-      //  }
-
     }
 
     return res.status(200)
@@ -758,15 +694,19 @@ exports.delete_stock_all = async (req, res) => {
     const id = req.params.id;
     const stock = await StocksSummary.findById(id);
     if (!stock) {
-      return res.status(404).send({ message: "ไม่พบสต็อกสินค้า" });
+      return res.status(404)
+        .send({ message: "ไม่พบสต็อกสินค้า" });
     }
     const product_oid = stock.items.map(item => item.product_oid);
     const delete_product = await Products.deleteMany({ _id: { $in: product_oid } });
+
     const delete_stock = await StocksSummary.findByIdAndDelete(id);
-    return res.status(200).send({ message: "ลบสต็อกสำเร็จ", data: delete_stock });
+    return res.status(200)
+      .send({ message: "ลบสต็อกสำเร็จ", data: delete_stock });
 
   } catch (err) {
-    return res.status(500).send({ message: err.message });
+    return res.status(500)
+      .send({ message: err.message });
   }
 }
 
