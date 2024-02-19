@@ -5,6 +5,7 @@ const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Agents } = require("../../model/user/agent.model");
 const { Rows } = require("../../model/user/row.model");
 const { Customers } = require("../../model/user/customer.model")
+const { ProductStock } = require("../../model/stock/stock.product.model")
 // const { StocksSummary } = require("../../model/stock/stock_summary.model");
 const moment = require('moment');
 const dayjs = require("dayjs");
@@ -297,32 +298,12 @@ exports.comfirm = async (req, res) => {
   try {
     const updateStatus = await Orders.findOne({ _id: req.params.id });
     if (updateStatus) {
-      updateStatus.update_status.push({
+      updateStatus.status.push({
         name: "อนุมัติการสั่งซื้อ",
         //  approver_user: "mock_admin",
-        timestamp: new Date().toISOString(),
+        timestamp: dayjs(Date.now()).format(""),
       });
       updateStatus.save();
-      updateStatus.packages.forEach(async (element) => {
-        const amount = element.product_price_info.amount
-        const product_id = element.product_price_info.product_oid
-
-        // ส่วนสินค้าราคา
-        const deleteproduct = await ProductsPrice.findOneAndDelete({ product_oid: product_id, amount: amount });
-        // ส่วนสต็อก
-        const stock = await StocksSummary.find({ items: { $elemMatch: { product_oid: product_id } } });
-        stock.forEach(async (element) => {
-          element.items.forEach(async (item) => {
-            if (item.product_oid === product_id) {
-              item.qty -= amount
-              element.save();
-            }
-          });
-        });
-        // หาค่าคอมมิชชั่น
-
-
-      });
       return res.status(200).send({
         status: true,
         message: "อนุมัติออเดอร์สำเร็จ",
@@ -335,6 +316,23 @@ exports.comfirm = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
+
+exports.cutstock = async (req, res) => {
+  try {
+    const product_stock = await ProductStock.findOne({
+      stock_id: req.body.stock_id,
+      product_id: req.body.product_id,
+    });
+    if (!product_stock)
+      return res.status(403).send({ status: false, message: "ไม่พบสินค้าในสต๊อกสินค้า" })
+    const new_stock = product_stock.stock - req.body.quantity;
+    product_stock.stock = new_stock
+    product_stock.save()
+    return res.status(200).send({ status: true, message: "ปรับสต๊อกสินค้าเรียบร้อย" })
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+}
 
 exports.tracking = async (req, res) => {
   try {

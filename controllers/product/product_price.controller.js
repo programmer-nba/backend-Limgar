@@ -92,27 +92,14 @@ exports.getProductPriceAll = async (req, res) => {
 exports.getProductPriceByProduct_oid = async (req, res) => {
   try {
     const id = req.params.id;
-    const product_one = await Products.findById(id);
+    // const product_one = await Products.findById(id);
     const priceLists = await ProductsPrice.find({
-      product_oid: id
+      product_id: id
     });
-    if (!product_one)
-      return res
-        .status(404)
-        .send({ status: false, message: "ดึงข้อมูลราคาสินค้าไม่สำเร็จ" });
-
-    //--HotFix prices obj test2 -----
-    _.forEach(priceLists, (value2, key2) => {
-      product_one.product_prices.push({
-        product_price_oid: value2.id,
-        product_oid: value2.product_oid,
-        amount: value2.amount,
-        price: value2.price
-      });
-    })
-    //--HotFix prices obj test2-------------
+    if (!priceLists)
+      return res.status(403).send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" })
     return res.status(200)
-      .send({ status: true, message: "ดึงข้อมูลราคาสินค้าสำเร็จ", data: product_one });
+      .send({ status: true, message: "ดึงข้อมูลราคาสินค้าสำเร็จ", data: priceLists });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
