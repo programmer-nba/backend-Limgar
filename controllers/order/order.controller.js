@@ -139,7 +139,6 @@ exports.create = async (req, res) => {
 
     })
 
-
     await new Orders({
       ...req.body,
       order_id: next_order_id,
@@ -348,7 +347,6 @@ exports.holdOrder = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
-
 
 exports.comfirm = async (req, res) => {
   //--วิ่งไปตัดของในคลังได้เลย

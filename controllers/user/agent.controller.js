@@ -26,6 +26,7 @@ exports.create = async (req, res) => {
     let first_name = req.body.first_name || ""
     const fisrt_nick_name = first_name + " " + last_name.substring(0, 4)
 
+    //--ตั้งให้เป็นเลเวล1 ตั้งแต่เริ่มสมัคร
     let row_lv1 = await Rows.findOne({ level_name: "agent_Lv1" })
     if (!row_lv1)
       return res.status(404).send({
@@ -37,7 +38,7 @@ exports.create = async (req, res) => {
       ...req.body,
       name: fisrt_nick_name,
       password: hashPassword,
-      agent_position: "agent",
+      agent_position: row_lv1.position,
       timestamp: Date.now(),
       row: row_lv1.id,
       active: false,
