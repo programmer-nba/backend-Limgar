@@ -54,7 +54,10 @@ exports.getProductStockById = async (req, res) => {
 exports.getProductStockByStockId = async (req, res) => {
     try {
         const id = req.params.id;
-        const product_stock = await ProductStock.findOne({ stock_id: id });
+        const product = await ProductStock.find();
+        const product_stock = product.filter(
+            (el) => el.stock_id = id
+        );
         if (!product_stock)
             return res.status(403).send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" })
         return res.status(201).send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: product_stock });
