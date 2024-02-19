@@ -5,170 +5,114 @@ const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Agents } = require("../../model/user/agent.model");
 const { Rows } = require("../../model/user/row.model");
 const { Customers } = require("../../model/user/customer.model")
-const { StocksSummary } = require("../../model/stock/stock_summary.model");
+// const { StocksSummary } = require("../../model/stock/stock_summary.model");
 const moment = require('moment');
+const dayjs = require("dayjs");
 
 var _ = require("lodash");
 
 exports.create = async (req, res) => {
-  //var run_order_id = 0;
   try {
-    const agent_order_oid = req.decoded._id
-    const { error } = validate(req.body);
-    if (error)
-      return res
-        .status(403)
-        .send({ message: error.details[0].message, status: false });
-
-    //ค้นหาออเดอรซ้ำ
-    //const orderlists = await Orders.find({})
-
-    const agent_order_one = await Agents.findOne({ _id: req.decoded._id })
-
-    //ถ้ารับเงินโอน ไม่ต้องส่งที่อยู่
-    const payment_type = req.body.payment_type
-    if (payment_type == "โอน") { }
-
-
-    let agent_level = ""  //สมมติว่า ส่งมาเป็น Lv1
-    if (!agent_order_one.row || agent_order_one.row === "") {
-      return res.status(404)
-        .send({ status: false, message: "ไม่พบ ข้อมูลระดับตัวแทนจำหน่าย" });
-    }
-    const agent_row = await Rows.findOne({ _id: agent_order_one.row })
-
-    if (agent_row) {
-      agent_level = agent_row.level_name  //สมมติว่า ส่งมาเป็น Lv1
-    }
-
-    //let agent_level = req.body.agent_info.level || "price_one"
-    const orderlists = await Orders.find().sort({ $natural: -1 }).limit(5); //The 1 will sort ascending (oldest to newest) and -1 will sort descending (newest to oldest.)
-
-    //รัน เลขออเดอร์
-
-    //const orderCard = orderlists.slice(-1)[0]  //get lastest order desc
-    const orderCard = orderlists[0]  //get lastest order asc
-
-    const lastest_order_id = orderCard.order_id
-    let next_order_id = "";
-
-    if (isNaN(lastest_order_id) || lastest_order_id === "") {
-      console.log("Invalid input")
+    const agent_id = req.decoded._id;
+    const agent = await Agents.findOne({ _id: agent_id });
+    if (!agent) {
+      return res.status(403).send({ status: false, message: "ไม่พบตัวแทนขาย", });
     } else {
-      next_order_id = genOrderNumber(lastest_order_id);
-    }
-
-    const product_orders = req.body.packages;
-    //--hotfix send new update into response
-    let newData = [];
-    let sum_total_price = 0;
-
-    let dealerPrice //set defalt
-    if (agent_level) {
-      switch (agent_level.level_name) {
-        case "agent_Lv1":
-          dealerPrice = "price_one"  //สมมติว่า Lv1
-          break;
-        case "agent_Lv2":
-          dealerPrice = "price_two"  //สมมติว่า Lv1
-          break;
-        case "agent_Lv3":
-          dealerPrice = "price_three"  //สมมติว่า Lv1
-          break;
-        default:
-          dealerPrice = "price_one"  //ปรับเป็นราคาหน้าร้าน
-      }
-
-    } else {
-      dealerPrice = "price_one"  //ปรับเป็นราคาหน้าร้าน
-    }
-    /* const one_customer = await Customers.findOne({
-       tel: req.body.customer_info.tel
-     });*/
-
-    const priceLists = await ProductsPrice.find();
-    const product_name_lists = await Products.find();
-    let newPriceLists = _.reduce(priceLists, (result, priceList, key4) => {
-      //let c = val4
-      let b = _.find(product_name_lists, (product_name, index8) => {
-        return product_name.id == priceList.product_oid
-      })
-
-      //ถ้าหาชื่อไม่เจอ ใส่-
-      if (!b) {
-        /*  return res.status(404)
-            .send({ status: false, message: "ไม่พบข้อมูลสินค้า" });*/
-        b = {
-          product_oid: "-",
-          product_name: "-",
+      let order = [];
+      let product_price = 0;
+      let product_cost = 0;
+      let product_freight = 0;
+      let amount = 0;
+      if (agent.row === '') {
+        return res.status(404)
+          .send({ status: false, message: "ไม่พบ ข้อมูลระดับตัวแทนจำหน่าย" });
+      } else {
+        for (let item of req.body.product_detail) {
+          const price = await ProductsPrice.findOne({
+            _id: item.product_pack_id,
+            product_id: item.product_id
+          });
+          if (price) {
+            if (agent.row === 'ระดับ 1') {
+              product_price += (price.price.price_one * item.quantity)
+            } else if (agent.row === 'ระดับ 2') {
+              product_price += (price.price.price_two * item.quantity)
+            } else if (agent.row === 'ระดับ 3') {
+              product_price += (price.price.price_three * item.quantity)
+            } else if (agent.row === 'ระดับ 4') {
+              product_price += (price.price.price_four * item.quantity)
+            } else if (agent.row === 'ระดับ 5') {
+              product_price += (price.price.price_five * item.quantity)
+            } else {
+              product_price += (price.price.price_one * item.quantity)
+            }
+            product_cost += (price.cost * item.quantity);
+            amount += price.amount;
+            order.push({
+              product_id: item.product_id,
+              quantity: item.quantity,
+              price: product_price,
+              cost: product_cost,
+            });
+          } else {
+            return res
+              .status(403)
+              .send({ status: false, message: "ไม่พบข้อมูลราคาสินค้า" });
+          }
         }
+        if (req.body.payment_type === 'เงินโอน') {
+          if (amount > 12) {
+            product_freight = product_freight + 50;
+          } else if (amount > 0 && amount < 12) {
+            product_freight = 50;
+          }
+        } else if (req.body.payment_type === 'COD') {
+          if (amount > 12) {
+            product_freight = product_freight + 100;
+          } else if (amount > 0 && amount < 12) {
+            product_freight = 100;
+          }
+        }
+        const totalprice = order.reduce(
+          (accumulator, currentValue) => accumulator + currentValue.price, 0
+        );
+        const totalcost = order.reduce(
+          (accumulator, currentValue) => accumulator + currentValue.cost, 0
+        );
+
+        //generate receipt number
+        const receiptnumber = await genOrderNumber(agent_id);
+
+        const customer = {
+          customer_name: req.body.customer_name,
+          customer_tel: req.body.customer_tel,
+          customer_address: req.body.customer_address,
+          customer_subdistrict: req.body.customer_subdistrict,
+          customer_district: req.body.customer_district,
+          customer_province: req.body.customer_province,
+          customer_postcode: req.body.customer_postcode,
+        };
+
+        const new_data = {
+          receiptnumber: receiptnumber,
+          agent_id: agent_id,
+          customer: customer,
+          product_detail: order,
+          total_cost: totalcost,
+          total_price: totalprice,
+          total_freight: product_freight,
+          payment_type: req.body.payment_type,
+          status: {
+            name: "รอการตรวจสอบ",
+            timestamp: dayjs(Date.now()).format(""),
+          },
+          timestamp: dayjs(Date.now()).format(""),
+        };
+        const order_product = new Orders(new_data);
+        order_product.save();
+        return res.status(200).send({ status: true, message: "สร้างออเดอร์สำเร็จ", data: order_product })
       }
-
-      result[priceList.id] = {
-        product_price_oid: priceList.id,
-        product_oid: b.id || "-",
-        product_name: b.product_name || "-",
-        amount: priceList.amount,
-        price: priceList.price[dealerPrice]
-      }
-      return result;
-    }, {})
-
-    //summary product order
-    _.forEach(product_orders, async (val, key) => {
-      let one_product = val
-
-      let one_in_order = one_product.product_price_info
-      let find_one = _.find(newPriceLists, (priceList, index2) => {
-        return priceList.product_price_oid == one_in_order.product_price_oid;
-      });
-
-      let newData2 = {
-        product_price_info: find_one,
-        total_amount: 0,
-        count: one_product.count,
-        sum_product_price: 0
-      };
-
-      newData2.total_amount = find_one.amount * one_product.count
-      newData2.sum_product_price = newData2.product_price_info.price * one_product.count
-
-      sum_total_price += newData2.product_price_info.price * newData2.count
-
-      newData.push(newData2);
-
-    })
-
-    await new Orders({
-      ...req.body,
-      order_id: next_order_id,
-      //--hotfix
-      //agent_oid: agent_order_one.id,
-      agent_oid: agent_order_oid,  //hotfix
-      update_status: {
-        name: "รอตรวจสอบ",
-        timestamp: new Date().toISOString(),
-      },
-      payment_type: req.body.payment_type,
-      customer_info: req.body.customer_info,
-
-      products_total: sum_total_price,
-      packages: newData,
-      remark: "-"
-    }).save().then((item) => {
-      if (!item)
-        return res.status(403)
-          .send({ status: false, message: "ส่งข้อมูลออเดอร์ไม่สำเร็จ" });
-      return res.status(200)
-        .send({ status: true, message: "ลงออเดอร์สำเร็จ", data: item });
-
-    });
-
-    /*const newOrderCard = await Orders.findOne({
-      order_id: next_order_id,
-    });
-    return res.status(200).send({ status: true, message: "ลงออเดอร์สำเร็จ", data: newOrderCard });*/
-
+    }
   } catch (err) {
     return res.status(500).send({ message: err.message });
   }
@@ -208,7 +152,7 @@ exports.getOrderByAgentId = async (req, res) => {
     const id = req.params.id;
     const order = await Orders.find();
     const agent_order = order.filter(
-      (el) => el.agent_oid === id,
+      (el) => el.agent_id === id,
     );
     // const order = await Orders.findOne({
     //   agent_oid: id,
@@ -452,24 +396,21 @@ exports.cancel = async (req, res) => {
 
 //------------------- utility function ---------------------//
 
-function genOrderNumber(order_id) {
-
-  let old_order_number = order_id.slice(-5); //แกะเลข 5 หลักท้าย
-  let old_date = order_id.substring(0, 6); //แกะเลขวันเดือนปี 6 หลักหน้า
-
-  let currentDate = moment().format('YY-MM-DD'); // ดึงวันที่ปัจจุบัน
-
-  let newDay = parseInt(moment().format('YYMMDD'), 10);
-  let lastestDay = parseInt(moment(old_date, "YYMMDD").format('YYMMDD'), 10);
-
-  if (newDay > lastestDay) {
-    old_order_number = "0" //reset order number
-  }
-
-  const orderNumber = addOneToStringNumber(old_order_number);
-  const fullOrderNumber = currentDate.replace(/-/g, '') + orderNumber.padStart(5, '0');// รวมวันที่และหมายเลขออเดอร์
-
-  return fullOrderNumber;
+async function genOrderNumber(agent_id) {
+  const pipeline = [
+    {
+      $match: { agent_id: agent_id }
+    },
+    {
+      $group: { _id: 0, count: { $sum: 1 } },
+    },
+  ];
+  const count = await Orders.aggregate(pipeline);
+  const countValue = count.length > 0 ? count[0].count + 1 : 1;
+  const data = `REP${dayjs(Date.now()).format("YYYYMMDD")}${countValue
+    .toString()
+    .padStart(5, "0")}`;
+  return data;
 };
 
 function addOneToStringNumber(inputString) {
