@@ -32,9 +32,6 @@ app.use("/Limgar/customer", require("./routes/user/customer"));
 
 app.use("/Limgar/channels", require("./routes/more/channels"));
 
-//Branch
-app.use("/Limgar/branch", require("./routes/branch/branch"));
-
 //delivery
 app.use("/Limgar/delivery", require("./routes/delivery/delivery"));
 
@@ -47,7 +44,9 @@ app.use("/Limgar/product_price", require("./routes/product/product_price"));
 
 //stock
 app.use("/Limgar/stock", require("./routes/stock/stock"));
-app.use("/Limgar/stock_summary", require("./routes/stock/stock_summary"));
+// app.use("/Limgar/stock_summary", require("./routes/stock/stock_summary"));
+app.use("/Limgar/stock/product", require("./routes/stock/stock_product"));
+
 //stock_log
 app.use("/Limgar/stock_order", require("./routes/stock/stock_order"));
 

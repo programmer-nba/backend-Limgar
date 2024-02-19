@@ -1,17 +1,13 @@
 const router = require("express").Router();
 const stock = require("../../controllers/stock/stock.controller");
+const authAdmin = require('../../lib/auth.admin')
 
-router.post("/register", stock.create);
-router.get("/", stock.getStockAll);
-router.get("/branch/:id", stock.getStockByBranch_oid);
-//router.get("/:id", stock.getStockByproduct_oid);
-router.put("/:id", stock.update);
-router.delete("/:id", stock.delete);
+router.post('/', authAdmin, stock.create);
 
-router.put("/request/:id", stock.holdOrder);//--
-//router.put("/request/:id/_:oid", stock.holdOrderById);//--
-//router.put("/confirm/:id", stock.comfirm);
+router.get('/all', authAdmin, stock.getStockAll);
+router.get('/:id', authAdmin, stock.getById);
 
-router.put("/cancel/:id", stock.cancel);
+router.put('/:id', authAdmin, stock.update);
+router.delete('/:id', authAdmin, stock.delete);
 
 module.exports = router;

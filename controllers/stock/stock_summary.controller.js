@@ -6,7 +6,6 @@ const { StockOrders } = require("../../model/stock/stock_order.model");
 const { Products } = require("../../model/product/product.model");
 const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Orders } = require("../../model/order/order.model")
-const { Branchs } = require("../../model/branch/branch.model");
 var _ = require("lodash");
 const { Schema } = require("mongoose");
 

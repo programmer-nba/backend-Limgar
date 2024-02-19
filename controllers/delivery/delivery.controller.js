@@ -3,7 +3,6 @@ const { Deliverys, validate } = require("../../model/delivery/delivery.model");
 //const stock_order = require("../../controllers/stock/stock_order.controller ");
 //const { StockOrders } = require("../../model/stock/stock_order.model");
 //const { Products } = require("../../test_SplitPriceAndProduct/model/product/product.model");
-//const { Branchs } = require("../../model/branch/branch.model");
 const { Orders } = require("../../model/order/order.model");
 
 exports.create = async (req, res) => {
