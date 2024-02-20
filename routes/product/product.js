@@ -1,10 +1,11 @@
 const router = require("express").Router();
 const products = require("../../controllers/product/product.controller");
+const authAdmin = require("../../lib/auth.admin");
 
-router.post("/", products.create);
-router.get("/", products.getProductAll);
-router.get("/:id", products.getProductById);
-router.put("/:id", products.update);
-router.delete("/:id", products.delete);
+router.post("/", authAdmin, products.create);
+router.get("/", authAdmin, products.getProductAll);
+router.get("/:id", authAdmin, products.getProductById);
+router.put("/:id", authAdmin, products.update);
+router.delete("/:id", authAdmin, products.delete);
 
 module.exports = router;
