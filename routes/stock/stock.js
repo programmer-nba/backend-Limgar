@@ -4,7 +4,7 @@ const authAdmin = require('../../lib/auth.admin')
 
 router.post('/', authAdmin, stock.create);
 
-router.get('/all', authAdmin, stock.getStockAll);
+router.get('/all', stock.getStockAll);
 router.get('/:id', authAdmin, stock.getById);
 
 router.put('/:id', authAdmin, stock.update);

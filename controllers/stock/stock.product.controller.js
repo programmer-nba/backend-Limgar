@@ -1,5 +1,6 @@
 const { ProductStock, validate } = require("../../model/stock/stock.product.model")
-const { Stocks } = require("../../model/stock/stock.model")
+const { Stocks } = require("../../model/stock/stock.model");
+const { Products } = require("../../model/product/product.model");
 
 exports.create = async (req, res) => {
     try {
@@ -7,10 +8,11 @@ exports.create = async (req, res) => {
         if (error)
             return res.status(403).send({ status: false, message: "มีบางอย่างผิดพลาด" })
         const product = await ProductStock.findOne({ product_id: req.body.product_id });
-        if (product)
+        const products = await Products.findOne({ _id: req.body.product_id });
+        if (product && products)
             return res.status(401).send({
                 status: false,
-                message: "มีสินค้าในคลัง",
+                message: "มีสินค้าในคลัง หรือ ไม่มีสินค้าในระบบ",
             });
         const stock = await Stocks.findOne({ _id: req.body.stock_id });
         if (!stock)
@@ -20,6 +22,7 @@ exports.create = async (req, res) => {
             });
         const product_stock = await new ProductStock({
             ...req.body,
+            product_name: products.product_name,
         });
         product_stock.save();
         return res.status(200).send({ status: true, message: "เพิ่มสินค้าเข้าสต๊อกสำเร็จ", data: product_stock });
@@ -56,7 +59,7 @@ exports.getProductStockByStockId = async (req, res) => {
         const id = req.params.id;
         const product = await ProductStock.find();
         const product_stock = product.filter(
-            (el) => el.stock_id = id
+            (el) => el.stock_id === id,
         );
         if (!product_stock)
             return res.status(403).send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" })

@@ -3,6 +3,7 @@ const Joi = require("joi");
 
 const ProductStockSchema = new mongoose.Schema({
     product_id: { type: String, required: true },
+    product_name: { type: String, required: true },
     stock_id: { type: String, required: true },
     stock: { type: Number, required: false, default: 0 },
     employee: { type: String, required: false },
