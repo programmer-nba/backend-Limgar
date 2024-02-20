@@ -7,6 +7,7 @@ const { Rows } = require("../../model/user/row.model");
 const { Customers } = require("../../model/user/customer.model")
 const { ProductStock } = require("../../model/stock/stock.product.model")
 // const { StocksSummary } = require("../../model/stock/stock_summary.model");
+const { Commission } = require("../../model/commission/commission.model")
 const moment = require('moment');
 const dayjs = require("dayjs");
 
@@ -48,7 +49,7 @@ exports.create = async (req, res) => {
               product_price += (price.price.price_one * item.quantity)
             }
             product_cost += (price.cost * item.quantity);
-            amount += price.amount;
+            amount += (price.amount * item.quantity);
             order.push({
               product_id: item.product_id,
               quantity: item.quantity,
@@ -62,17 +63,13 @@ exports.create = async (req, res) => {
           }
         }
         if (req.body.payment_type === 'เงินโอน') {
-          if (amount > 12) {
-            product_freight = product_freight + 50;
-          } else if (amount > 0 && amount < 12) {
-            product_freight = 50;
-          }
+          const count = amount / 12;
+          const counts = Math.round(count);
+          product_freight = counts * 50;
         } else if (req.body.payment_type === 'COD') {
-          if (amount > 12) {
-            product_freight = product_freight + 100;
-          } else if (amount > 0 && amount < 12) {
-            product_freight = 100;
-          }
+          const count = amount / 12;
+          const counts = Math.round(count);
+          product_freight = (counts * 50) + 50;
         }
         const totalprice = order.reduce(
           (accumulator, currentValue) => accumulator + currentValue.price, 0
@@ -360,7 +357,33 @@ exports.tracking = async (req, res) => {
 
 exports.confirmShipping = async (req, res) => {
   try {
-    
+    const updateStatus = await Orders.findOne({ _id: req.params.id });
+    if (!updateStatus)
+      return res.status(403).send({ status: false, message: "ไม่พบข้อมูลออเดอร์" });
+    const agent = await Agents.findOne({ _id: updateStatus.agent_id });
+    if (!agent)
+      return res.status(403).send({ status: false, message: "ไม่พบข้อมูลตัวแทนขาย" });
+    updateStatus.status.push({
+      name: "ส่งสินค้าสำเร็จ",
+      timestamp: dayjs(Date.now()).format(""),
+    });
+    const profit = updateStatus.total_price - updateStatus.total_cost;
+    const commission = (profit * req.body.percent) / 100;
+    const vat = (commission * 3) / 100;
+    const net = commission - vat;
+    agent.commissiom = net;
+    const data = {
+      orderid: updateStatus.receiptnumber,
+      agent_id: updateStatus.agent_id,
+      commission: commission,
+      vat: vat,
+      net: net,
+    };
+    const new_commission = new Commission(data);
+    updateStatus.save();
+    agent.save();
+    new_commission.save();
+    return res.status(200).send({ status: true, message: 'จ่ายค่าคอมมิชชั่นสำเร็จ', data: new_commission })
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }

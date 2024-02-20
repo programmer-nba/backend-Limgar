@@ -27,8 +27,6 @@ router.post("/", auth, async (req, res) => {
     if (decoded && decoded.row === "agent") {
       const id = decoded._id;
       const agent = await Agents.findOne({ _id: id });
-
-
       if (!agent) {
         return res.status(400)
           .send({ message: "Invalid Data", status: false });

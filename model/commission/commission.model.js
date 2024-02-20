@@ -2,13 +2,12 @@ const mongoose = require("mongoose");
 const Joi = require("joi");
 
 const CommissionSchema = new mongoose.Schema({
-    refno:{type:String, required:true},  
-    date:{type:Date, default:Date.now()},
-    Commissiondetail:[{
-        agentid:{type:mongoose.Schema.Types.ObjectId, ref:'agent'},
-        agentname:{type:String, required:true},
-        amount:{type:Number, default:0},
-    }]
+    orderid: { type: String },
+    agent_id: { type: String },
+    commission: { type: Number },
+    vat: { type: Number },
+    net: { type: Number },
+    timestamp: { type: Date, required: false, default: Date.now() },
 });
 
 const Commission = mongoose.model("commission", CommissionSchema);
