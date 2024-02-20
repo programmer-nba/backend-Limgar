@@ -35,7 +35,7 @@ const OrderSchema = new mongoose.Schema({
     enum: ["เงินโอน", "COD"],
     required: true,
   },
-  tracking_number: { type: String, required: false },
+  tracking_number: { type: String, required: false, default: "" },
   image: { type: String, required: false, default: "" },
   remark: { type: String, required: false },
   status: { type: Array, required: true },
