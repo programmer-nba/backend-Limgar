@@ -55,6 +55,7 @@ const validate = (data) => {
     customer_postcode: Joi.string().required().label('รหัสไปรษณีย์'),
     product_id: Joi.string().required().label('กรอกไอดีสินค้า'),
     quantity: Joi.number().required().label("กรอกจำนวนสินค้า"),
+    tracking_number: Joi.string().default(""),
     image: Joi.string().default(""),
     payment_type: Joi.string().required().label('กรอกวิธีชำระเงิน')
   });

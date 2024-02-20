@@ -23,7 +23,7 @@ router.delete("/:id", order.delete);
 //router.put("/request/:id/_:oid", order.holdOrderById);//--
 router.put("/confirm/:id", auth_admin, order.comfirm);
 router.put("/cut/stock", auth_admin, order.cutstock);
-router.put("/tracking/:id", auth_admin, order.tracking);
+router.put("/tracking/:id", order.tracking);
 router.put("/cancel/:id", auth_admin, order.cancel);
 
 
