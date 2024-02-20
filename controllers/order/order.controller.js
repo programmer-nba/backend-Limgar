@@ -341,7 +341,7 @@ exports.tracking = async (req, res) => {
       updateStatus.update_status.push({
         name: "ดำเนินการส่งสินค้า",
         //  approver_user: "mock_admin",
-        timestamp: new Date().toISOString(),
+        timestamp: dayjs(Date.now()).format(""),
       });
       updateStatus.tracking_number = req.body.tracking_number,
         updateStatus.save();
