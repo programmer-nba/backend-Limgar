@@ -338,7 +338,7 @@ exports.tracking = async (req, res) => {
   try {
     const updateStatus = await Orders.findOne({ _id: req.params.id });
     if (updateStatus) {
-      updateStatus.update_status.push({
+      updateStatus.status.push({
         name: "ดำเนินการส่งสินค้า",
         //  approver_user: "mock_admin",
         timestamp: dayjs(Date.now()).format(""),
