@@ -25,7 +25,7 @@ router.put("/confirm/:id", auth_admin, order.comfirm);
 router.put("/cut/stock", auth_admin, order.cutstock);
 router.put("/tracking/:id", order.tracking);
 router.put("/cancel/:id", auth_admin, order.cancel);
-
+router.put("/confirm/shipping", auth_admin, order.confirmShipping);
 
 
 module.exports = router;

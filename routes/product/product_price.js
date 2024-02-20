@@ -5,8 +5,8 @@ const authAgent = require("../../lib/auth.agent");
 const auth = require("../../lib/auth.me");
 
 router.post("/", authAdmin, productPrice.create);
-router.get("/", auth, productPrice.getProductPriceAll);
-router.get("/:id", auth, productPrice.getProductPriceByProduct_oid);
+router.get("/", productPrice.getProductPriceAll);
+router.get("/:id", productPrice.getProductPriceByProduct_oid);
 router.put("/:id", authAdmin, productPrice.update);
 router.put("/byproduct/:id", authAdmin, productPrice.updateByProduct_oid);
 router.delete("/:id", authAdmin, productPrice.delete);

@@ -358,6 +358,14 @@ exports.tracking = async (req, res) => {
   }
 };
 
+exports.confirmShipping = async (req, res) => {
+  try {
+    
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+}
+
 exports.cancel = async (req, res) => {
   //const fillter_status = "waiting" //--ฟิลเตอณเฉพาะ รออนุมัติ
   try {
