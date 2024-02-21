@@ -19,7 +19,7 @@ exports.create = async (req, res) => {
                 status: false,
                 message: "ไม่พบสต๊อกที่ต้องการเพิ่มสินค้า",
             });
-        const product_stock = await ProductStock.findOne({ product_id: req.body.product_id });
+        const product_stock = await ProductStock.findOne({ product_id: req.body.product_id, stock_id: req.body.stock_id });
         if (product_stock)
             return res.status(401).send({
                 status: false,
