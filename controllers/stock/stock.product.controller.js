@@ -7,17 +7,11 @@ exports.create = async (req, res) => {
         const { error } = validate(req.body);
         if (error)
             return res.status(403).send({ status: false, message: "มีบางอย่างผิดพลาด" })
-        const products = await Products.findOne({ _id: req.body.product_id });
-        if (products)
+        const product = await Products.findOne({ _id: req.body.product_id });
+        if (!product)
             return res.status(401).send({
                 status: false,
                 message: "ไม่มีสินค้าในระบบ",
-            });
-        const product = await ProductStock.findOne({ product_id: req.body.product_id });
-        if (product)
-            return res.status(401).send({
-                status: false,
-                message: "มีสินค้าในคลังแล้ว",
             });
         const stock = await Stocks.findOne({ _id: req.body.stock_id });
         if (!stock)
@@ -25,11 +19,17 @@ exports.create = async (req, res) => {
                 status: false,
                 message: "ไม่พบสต๊อกที่ต้องการเพิ่มสินค้า",
             });
-        const product_stock = await new ProductStock({
+        const product_stock = await ProductStock.findOne({ product_id: req.body.product_id });
+        if (product_stock)
+            return res.status(401).send({
+                status: false,
+                message: "มีสินค้าในคลังแล้ว",
+            });
+        const new_product_stock = await new ProductStock({
             ...req.body,
             product_name: products.product_name,
         });
-        product_stock.save();
+        new_product_stock.save();
         return res.status(200).send({ status: true, message: "เพิ่มสินค้าเข้าสต๊อกสำเร็จ", data: product_stock });
     } catch (err) {
         return res.status(500).send({ message: "มีบางอย่างผิดพลาด", status: false });
