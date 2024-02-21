@@ -7,12 +7,17 @@ exports.create = async (req, res) => {
         const { error } = validate(req.body);
         if (error)
             return res.status(403).send({ status: false, message: "มีบางอย่างผิดพลาด" })
-        const product = await ProductStock.findOne({ product_id: req.body.product_id });
         const products = await Products.findOne({ _id: req.body.product_id });
-        if (product && products)
+        if (products)
             return res.status(401).send({
                 status: false,
-                message: "มีสินค้าในคลัง หรือ ไม่มีสินค้าในระบบ",
+                message: "ไม่มีสินค้าในระบบ",
+            });
+        const product = await ProductStock.findOne({ product_id: req.body.product_id });
+        if (product)
+            return res.status(401).send({
+                status: false,
+                message: "มีสินค้าในคลังแล้ว",
             });
         const stock = await Stocks.findOne({ _id: req.body.stock_id });
         if (!stock)
