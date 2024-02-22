@@ -17,6 +17,7 @@ router.get("/:id", order.getOrderById);
 router.get("/agent/:id", order.getOrderByAgentId);
 //router.get("/:id", order.getOrderByAgentOid);
 router.put("/:id", order.update);
+router.put("/slip/:id", order.updateSlip);
 router.delete("/:id", order.delete);
 
 //router.put("/request/:id", order.holdOrder);//--
@@ -25,7 +26,9 @@ router.put("/confirm/:id", auth_admin, order.comfirm);
 router.put("/cut/stock", auth_admin, order.cutstock);
 router.put("/tracking/:id", auth_admin, order.tracking);
 router.put("/cancel/:id", auth_admin, order.cancel);
+
 router.put("/confirm/shipping/:id", auth_admin, order.confirmShipping);
+router.put("/cancel/shopping/:id", order.cancelShipping);
 
 
 module.exports = router;

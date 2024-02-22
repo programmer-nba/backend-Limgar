@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const { Orders, validate } = require("../../model/order/order.model");
+const { Invoices } = require("../../model/order/invoice.model");
 const { Products } = require("../../model/product/product.model");
 const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Agents } = require("../../model/user/agent.model");
@@ -10,6 +11,31 @@ const { ProductStock } = require("../../model/stock/stock.product.model")
 const { Commission } = require("../../model/commission/commission.model")
 const moment = require('moment');
 const dayjs = require("dayjs");
+
+const multer = require("multer");
+const fs = require("fs");
+const { google } = require("googleapis");
+const CLIENT_ID = process.env.GOOGLE_DRIVE_CLIENT_ID;
+const CLIENT_SECRET = process.env.GOOGLE_DRIVE_CLIENT_SECRET;
+const REDIRECT_URI = process.env.GOOGLE_DRIVE_REDIRECT_URI;
+const REFRESH_TOKEN = process.env.GOOGLE_DRIVE_REFRESH_TOKEN;
+
+const oauth2Client = new google.auth.OAuth2(
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REDIRECT_URI
+);
+oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+const drive = google.drive({
+  version: "v3",
+  auth: oauth2Client,
+});
+
+const storage = multer.diskStorage({
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-");
+  },
+});
 
 var _ = require("lodash");
 
@@ -101,7 +127,7 @@ exports.create = async (req, res) => {
           total_freight: product_freight,
           payment_type: req.body.payment_type,
           status: {
-            name: "รอการตรวจสอบ",
+            name: "ค้างชำระ",
             timestamp: dayjs(Date.now()).format(""),
           },
           timestamp: dayjs(Date.now()).format(""),
@@ -132,14 +158,14 @@ exports.getOrderAll = async (req, res) => {
 exports.getOrderById = async (req, res) => {
   try {
     const id = req.params.id;
-    const agent = await Orders.findById(id);
-    if (!agent)
+    const order = await Orders.findById(id);
+    if (!order)
       return res
         .status(404)
         .send({ status: false, message: "ดึงข้อมูลออเดอร์ไม่สำเร็จ" });
     return res
       .status(200)
-      .send({ status: true, message: "ดึงข้อมูลออเดอร์สำเร็จ", data: agent });
+      .send({ status: true, message: "ดึงข้อมูลออเดอร์สำเร็จ", data: order });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
@@ -218,6 +244,75 @@ exports.update = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
+
+exports.updateSlip = async (req, res) => {
+  try {
+    let upload = multer({ storage: storage }).single("slip_image");
+    upload(req, res, async function (err) {
+      if (!req.file) {
+        res.status(500).send({ message: "มีบางอย่างผิดพลาด", status: false });
+      } else {
+        // const url = req.protocol + "://" + req.get("host");
+        uploadFileCreate(req, res);
+      }
+    });
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+}
+
+async function uploadFileCreate(req, res) {
+  const filePath = req.file.path;
+  const order = await Orders.findOne({ _id: req.params.id });
+  if (!order)
+    return res.status(403).send({ status: false, message: "ไม่พบข้อมูลออเดอร์" });
+
+  let fileMetaData = {
+    name: req.originalname,
+    parents: [process.env.GOOGLE_DRIVE_IMAGE_SLIP],
+  };
+  let media = {
+    body: fs.createReadStream(filePath),
+  };
+  try {
+    const response = await drive.files.create({
+      resource: fileMetaData,
+      media: media,
+    });
+    generatePublicUrl(response.data.id);
+    order.image = response.data.id;
+    order.status = {
+      name: "รอตรวจสอบ",
+      timestamp: dayjs(Date.now()).format(""),
+    };
+    order.save();
+    return res.status(201).send({ message: "แนบสลิปโอนเงินสำเร็จ", status: true });
+  } catch (error) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+}
+
+async function generatePublicUrl(res) {
+  console.log("generatePublicUrl");
+  try {
+    const fileId = res;
+    await drive.permissions.create({
+      fileId: fileId,
+      requestBody: {
+        role: "reader",
+        type: "anyone",
+      },
+    });
+    const result = await drive.files.get({
+      fileId: fileId,
+      fields: "webViewLink, webContentLink",
+    });
+    // console.log(result.data);
+  } catch (error) {
+    return console.log(error.message);
+  }
+}
+
 
 exports.delete = async (req, res) => {
   try {
@@ -384,6 +479,35 @@ exports.confirmShipping = async (req, res) => {
     agent.save();
     new_commission.save();
     return res.status(200).send({ status: true, message: 'จ่ายค่าคอมมิชชั่นสำเร็จ', data: new_commission })
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
+exports.cancelShipping = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const order = await Orders.findOne({ _id: id });
+    if (!order)
+      return res.status(403).send({ status: false, message: "ไม่พบข้อมูลออเดอร์" });
+    order.status.push({
+      name: "สินค้าตีกลับ",
+      timestamp: dayjs(Date.now()).format(""),
+    });
+    const invoice = order.total_freight * 2;
+    const data = {
+      agent_id: order.agent_id,
+      receiptnumber: order.receiptnumber,
+      total: invoice,
+      status: {
+        name: "รอดำเนินการโอนเงิน",
+        timestamp: dayjs(Date.now()).format(""),
+      },
+    };
+    const new_invoice = new Invoices(data);
+    order.save();
+    new_invoice.save();
+    return res.status(200).send({ status: true, message: "สร้างใบแจ้งหนี้ สินค้าตีกลับสำเร็จ", data: new_invoice })
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }

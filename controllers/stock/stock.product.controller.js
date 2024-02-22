@@ -27,7 +27,7 @@ exports.create = async (req, res) => {
             });
         const new_product_stock = await new ProductStock({
             ...req.body,
-            product_name: products.product_name,
+            product_name: product.product_name,
         });
         new_product_stock.save();
         return res.status(200).send({ status: true, message: "เพิ่มสินค้าเข้าสต๊อกสำเร็จ", data: product_stock });
