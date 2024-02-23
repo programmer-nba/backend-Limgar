@@ -88,14 +88,22 @@ exports.create = async (req, res) => {
               .send({ status: false, message: "ไม่พบข้อมูลราคาสินค้า" });
           }
         }
-        if (req.body.payment_type === 'เงินโอน') {
+        if (req.body.payment_type === 'COD') {
           const count = amount / 12;
-          const counts = Math.round(count);
-          product_freight = counts * 50;
-        } else if (req.body.payment_type === 'COD') {
+          if (count === 0) {
+            product_freight = 100;
+          } else {
+            const counts = Math.round(count);
+            product_freight = (counts * 50) + 50;
+          }
+        } else {
           const count = amount / 12;
-          const counts = Math.round(count);
-          product_freight = (counts * 50) + 50;
+          if (count === 0) {
+            product_freight = 50;
+          } else {
+            const counts = Math.round(count);
+            product_freight = counts * 50;
+          }
         }
         const totalprice = order.reduce(
           (accumulator, currentValue) => accumulator + currentValue.price, 0
