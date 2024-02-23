@@ -9,6 +9,7 @@ const auth = require("../lib/auth.me");
 router.post("/", auth, async (req, res) => {
   const { decoded } = req;
   try {
+
     const id = decoded._id;
     if (decoded && decoded.row === "admin") {
       const admin = await Admins.findOne({ _id: id })
@@ -24,50 +25,14 @@ router.post("/", auth, async (req, res) => {
         });
       }
     }
+
     if (decoded && decoded.row === "agent") {
       const id = decoded._id;
       const agent = await Agents.findOne({ _id: id });
-      if (!agent) {
+      if (!agent)
         return res.status(400)
           .send({ message: "Invalid Data", status: false });
-      } else {
-        //--ไปหาRow 
-        const row = await Rows.findById(agent.row)
-        if (!row) {
-          return res.status(400)
-            .send({ message: "Invalid Data (no row)", status: false });
-        }
-        //else {
-        return res.status(200)
-          .send({
-            name: agent.name,
-            username: agent.username,
-            //level: row.position,
-            level_name: row.level_name,
-            position: row.position,
-            agent_oid: agent.id,
-            active: agent.active,
-            allow_term_con: {
-              step1: agent.allow_term_con.step1,
-              step2: agent.allow_term_con.step2
-            },
-            agent_info: {
-              prefix_name: agent.prefix_name,
-              first_name: agent.first_name,
-              last_name: agent.last_name,
-              tel: agent.tel,
-              address: agent.address,
-              address_moo: agent.address_moo,
-              address_byway: agent.address_byway,
-              address_street: agent.address_street,
-              subdistrict: agent.subdistrict,
-              district: agent.district,
-              province: agent.province,
-              postcode: agent.postcode,
-              person_id: agent.iden.number,
-            }
-          });
-      }
+      return res.status(200).send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: agent });
     }
 
     else {
