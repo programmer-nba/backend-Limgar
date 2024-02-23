@@ -58,7 +58,7 @@ exports.getByAgentId = async (req, res) => {
     try {
         const id = req.params.id;
         const invoice = await Invoices.find();
-        const invoice_agent = invoice.find((el) => el.agent_id === id);
+        const invoice_agent = invoice.filter((el) => el.agent_id === id);
         if (!invoice_agent)
             return res
                 .status(404)
