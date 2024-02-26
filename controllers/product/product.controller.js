@@ -219,10 +219,36 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
-    await Products.findOneAndDelete(id);
-    await ProductsPrice.findOneAndDelete({ product_id: id });
-    await ProductStock.findOneAndDelete({ product_id: id });
-    return res.status(200).send({ status: true, message: "ลบรายการสินค้าในระบบ ในคลัง และราคาเรียบร้อย" })
+    const product_price = await ProductsPrice.find();
+    const product_stock = await ProductStock.find();
+    const price_id = product_price.filter(
+      (el) => el.product_id === id
+    );
+    const stock_id = product_stock.filter(
+      (el) => el.product_id === id
+    );
+    for (let price of price_id) {
+      ProductsPrice.findByIdAndDelete(price._id, { useFindAndModify: false })
+        .then(async (item) => {
+          if (!item)
+            return res.status(404).send({ message: "ไม่สามรถลบราคาสินค้านี้ได้" });
+          console.log("ลบข้อมูลราคาสินค้าแล้ว")
+        })
+    };
+    for (let stock of stock_id) {
+      ProductStock.findByIdAndDelete(stock._id, { useFindAndModify: false })
+        .then(async (item) => {
+          if (!item)
+            return res.status(404).send({ message: "ไม่สามรถลบราคาสินค้านี้ได้" });
+          console.log("ลบข้อมูลสินค้าในสต๊อกแล้ว")
+        })
+    };
+    Products.findByIdAndDelete(id, { useFindAndModify: false })
+      .then(async (item) => {
+        if (!item)
+          return res.status(404).send({ message: "ไม่สามรถลบราคาสินค้านี้ได้" });
+        return res.status(200).send({ message: "ลบข้อมูลสินค้าสำเร็จ" });
+      })
   } catch (err) {
     return res.status(500).send({ message: err.message });
   }

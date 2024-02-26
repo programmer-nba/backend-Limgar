@@ -8,6 +8,6 @@ router.post("/", authAdmin, products.create);
 router.get("/", products.getProductAll);
 router.get("/:id", products.getProductById);
 router.put("/:id", authAdmin, products.update);
-router.delete("/:id", authAdmin, products.delete);
+router.delete("/:id", products.delete);
 
 module.exports = router;
