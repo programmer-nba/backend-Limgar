@@ -39,7 +39,7 @@ const OrderSchema = new mongoose.Schema({
   image: { type: String, required: false, default: "" },
   remark: { type: String, required: false },
   status: { type: Array, required: true },
-  timestamp: { type: Date, required: false, default: Date.now() },
+  
 });
 
 const Orders = mongoose.model("orders", OrderSchema);

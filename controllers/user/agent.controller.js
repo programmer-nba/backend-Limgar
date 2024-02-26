@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const { Agents, validate } = require("../../model/user/agent.model");
-const { Rows } = require("../../model/user/row.model");
+const dayjs = require("dayjs");
 
 exports.create = async (req, res) => {
   try {
@@ -10,7 +10,7 @@ exports.create = async (req, res) => {
         .status(403)
         .send({ message: error.details[0].message, status: false });
     const admin = await Agents.findOne({
-      name: req.body.name,
+      username: req.body.username,
       tel: req.body.tel,
     });
     if (admin)
@@ -22,36 +22,20 @@ exports.create = async (req, res) => {
     const salt = await bcrypt.genSalt(Number(process.env.SALT));
     const hashPassword = await bcrypt.hash(req.body.password, salt);
 
-    let last_name = req.body.last_name || "limgar"
-    let first_name = req.body.first_name || ""
-    const fisrt_nick_name = first_name + " " + last_name.substring(0, 4)
-
-    //--ตั้งให้เป็นเลเวล1 ตั้งแต่เริ่มสมัคร
-    let row_lv1 = await Rows.findOne({ level_name: "agent_Lv1" })
-    if (!row_lv1)
-      return res.status(404).send({
-        status: false,
-        message: "ไม่พบ ระดับตัวแทนขาย",
-      });
-
-    await new Agents({
+    const data = {
       ...req.body,
-      name: fisrt_nick_name,
       password: hashPassword,
-      agent_position: row_lv1.position,
-      timestamp: Date.now(),
-      row: row_lv1.id,
+      timestamp: dayjs(Date.now()).format(""),
       active: false,
-      allow_term_con: {
-        step1: false,
-        step2: false
-      },
       status: {
         name: "รอตรวจสอบ",
-        timestamp: Date.now()
-      }
-    }).save();
-    return res.status(200).send({ status: true, message: "สมัครสมาชิกสำเร็จ" });
+        timestamp: dayjs(Date.now()).format("")
+      },
+    };
+
+    const new_agent = new Agents(data);
+    new_agent.save();
+    return res.status(200).send({ status: true, message: "สมัครสมาชิกสำเร็จ", data: new_agent });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
