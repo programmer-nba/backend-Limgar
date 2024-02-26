@@ -125,21 +125,41 @@ exports.create = async (req, res) => {
           customer_postcode: req.body.customer_postcode,
         };
 
-        const new_data = {
-          receiptnumber: receiptnumber,
-          agent_id: agent_id,
-          customer: customer,
-          product_detail: order,
-          total_cost: totalcost,
-          total_price: totalprice,
-          total_freight: product_freight,
-          payment_type: req.body.payment_type,
-          status: {
-            name: "ค้างชำระ",
+        let new_data;
+        if (req.body.payment_type === 'เงินโอน') {
+          new_data = {
+            receiptnumber: receiptnumber,
+            agent_id: agent_id,
+            customer: customer,
+            product_detail: order,
+            total_cost: totalcost,
+            total_price: totalprice,
+            total_freight: product_freight,
+            payment_type: req.body.payment_type,
+            status: {
+              name: "ค้างชำระ",
+              timestamp: dayjs(Date.now()).format(""),
+            },
             timestamp: dayjs(Date.now()).format(""),
-          },
-          timestamp: dayjs(Date.now()).format(""),
-        };
+          };
+        } else {
+          new_data = {
+            receiptnumber: receiptnumber,
+            agent_id: agent_id,
+            customer: customer,
+            product_detail: order,
+            total_cost: totalcost,
+            total_price: totalprice,
+            total_freight: product_freight,
+            payment_type: req.body.payment_type,
+            status: {
+              name: "รอตรวจสอบ",
+              timestamp: dayjs(Date.now()).format(""),
+            },
+            timestamp: dayjs(Date.now()).format(""),
+          };
+        }
+
         const order_product = new Orders(new_data);
         order_product.save();
         return res.status(200).send({ status: true, message: "สร้างออเดอร์สำเร็จ", data: order_product })
