@@ -78,7 +78,7 @@ exports.create = async (req, res) => {
             amount += (price.amount * item.quantity);
             order.push({
               product_id: item.product_id,
-              quantity: item.quantity,
+              quantity: amount,
               price: product_price,
               cost: product_cost,
             });
