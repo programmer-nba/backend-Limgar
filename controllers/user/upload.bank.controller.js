@@ -66,6 +66,7 @@ exports.upload = async (req, res) => {
                 agent.bank.image = response.data.id;
                 agent.bank.name = req.body.name;
                 agent.bank.number = req.body.number;
+                agent.bank.remark = "รอการตรวจสอบ";
                 agent.save();
                 return res.status(201).send({ message: "แก้ไขข้อมูลตัวแทนเรียบร้อย", status: true });
             } catch (error) {

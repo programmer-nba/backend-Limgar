@@ -20,5 +20,6 @@ router.put("/confirm/:id", authAdmin, agent.comfirm);
 router.put("/cancel/:id", agent.cancel);
 
 router.put("/bank/:id", uploadBank.upload);
+router.put("/confirm/bank/:id", agent.confirmBank);
 
 module.exports = router;

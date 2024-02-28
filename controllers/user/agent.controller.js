@@ -196,3 +196,21 @@ exports.cancel = async (req, res) => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 };
+
+exports.confirmBank = async (req, res) => {
+  try {
+    const updateBank = await Agents.findOne({ _id: req.params.id });
+    if (!updateBank)
+      return res.status(403).send({ status: false, message: "ไม่พบข้อมูลตัวแทนขาย" })
+    updateBank.bank.status = true;
+    updateBank.bank.remark = "ผ่านการตรวจสอบ";
+    updateBank.save();
+    return res.status(200).send({
+      status: true,
+      message: "อนุมัติสมุดบัญชีธนาคารสำเร็จ",
+      data: updateBank,
+    });
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+}
