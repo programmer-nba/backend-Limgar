@@ -11,4 +11,6 @@ router.get('/all', authAdmin, Commission.getcommission);
 router.get('/:id', authAdmin, Commission.getcommissionById);
 //ลบข้อมูลค่าคอมมิชชั่น
 // router.delete('/deletecommission/:id', Commission.deletecommission);
+// router.put("/:id", authAdmin, Commission.cutoff);
+
 module.exports = router;

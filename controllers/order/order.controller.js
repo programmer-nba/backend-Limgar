@@ -494,7 +494,7 @@ exports.confirmShipping = async (req, res) => {
     const commission = (profit * req.body.percent) / 100;
     const vat = (commission * 3) / 100;
     const net = commission - vat;
-    agent.commissiom = net;
+    agent.commissiom += net;
     const data = {
       orderid: updateStatus.receiptnumber,
       agent_id: updateStatus.agent_id,
