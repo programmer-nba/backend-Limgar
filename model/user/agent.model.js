@@ -19,6 +19,7 @@ const AgentSchema = new mongoose.Schema({
   first_name: { type: String, required: true },
   last_name: { type: String, required: true },
   tel: { type: String, required: true },
+  iden: { type: String, required: true },
   username: { type: String, required: true },
   password: { type: String, required: true },
   address: { type: String, required: true },
@@ -41,12 +42,12 @@ const AgentSchema = new mongoose.Schema({
     status: { type: Boolean, required: false, default: false },
     remark: { type: String, required: false, default: "-" }, // อยู่ระหว่างการตรวจสอบ, ไม่ผ่านการตรวจสอบ, ตรวจสอบสำเร็จ
   },
-  iden: {
-    number: { type: String, required: false, default: "-" },
-    image: { type: String, required: false, default: "-" },
-    status: { type: Boolean, required: false, default: false },
-    remark: { type: String, required: false, default: "-" }, // อยู่ระหว่างการตรวจสอบ, ไม่ผ่านการตรวจสอบ, ตรวจสอบสำเร็จ
-  },
+  // iden: {
+  //   number: { type: String, required: false, default: "-" },
+  //   image: { type: String, required: false, default: "-" },
+  //   status: { type: Boolean, required: false, default: false },
+  //   remark: { type: String, required: false, default: "-" }, // อยู่ระหว่างการตรวจสอบ, ไม่ผ่านการตรวจสอบ, ตรวจสอบสำเร็จ
+  // },
   commissiom: { type: Number, required: false, default: 0 },
   allow_term_con: {
     step1: { type: Boolean, require: false, default: false },
@@ -81,6 +82,7 @@ const validate = (data) => {
     first_name: Joi.string().required().label("ไม่พบชื่อหลัก"),
     last_name: Joi.string().required().label("ไม่พบชื่อสกุล"),
     tel: Joi.string().required().label("ไม่พบเบอร์โทร"),
+    iden: Joi.string().required().label("ไม่พบเลขบัตรประชาชน"),
     username: Joi.string().required().label("ไม่พบชื่อผู้ใช้งาน"),
     password: passwordComplexity(complexityOptions)
       .required()
@@ -105,12 +107,12 @@ const validate = (data) => {
       status: Joi.boolean().default(false),
       remark: Joi.string().default("-"),
     },
-    iden: {
-      number: Joi.string().default("-"),
-      image: Joi.string().default("-"),
-      status: Joi.boolean().default(false),
-      remark: Joi.string().default("-"),
-    },
+    // iden: {
+    //   number: Joi.string().default("-"),
+    //   image: Joi.string().default("-"),
+    //   status: Joi.boolean().default(false),
+    //   remark: Joi.string().default("-"),
+    // },
     commissiom: Joi.number().default(0),
     active: Joi.boolean().default(false),
   });

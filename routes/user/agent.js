@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const agent = require("../../controllers/user/agent.controller");
+const uploadBank = require("../../controllers/user/upload.bank.controller");
 const row = require("../../controllers/user/row.controller")
 const authAdmin = require("../../lib/auth.admin");
 
@@ -17,5 +18,7 @@ router.delete("/row/:id", row.delete);
 
 router.put("/confirm/:id", authAdmin, agent.comfirm);
 router.put("/cancel/:id", agent.cancel);
+
+router.put("/bank/:id", uploadBank.upload);
 
 module.exports = router;
