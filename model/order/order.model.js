@@ -32,14 +32,14 @@ const OrderSchema = new mongoose.Schema({
   discount: { type: Number, required: false, default: 0 },
   payment_type: {
     type: String,
-    enum: ["เงินโอน", "COD"],
+    enum: ["เงินสด", "เงินโอน", "COD"],
     required: true,
   },
   tracking_number: { type: String, required: false, default: "" },
   image: { type: String, required: false, default: "" },
   remark: { type: String, required: false },
   status: { type: Array, required: true },
-  
+
 });
 
 const Orders = mongoose.model("orders", OrderSchema);
