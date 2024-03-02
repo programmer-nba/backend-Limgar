@@ -37,7 +37,7 @@ const OrderSchema = new mongoose.Schema({
   image: { type: String, required: false, default: "" },
   remark: { type: String, required: false },
   status: { type: Array, required: true },
-
+  timestamp: { type: Date, required: false }
 });
 
 const Orders = mongoose.model("orders", OrderSchema);
@@ -57,7 +57,8 @@ const validate = (data) => {
     quantity: Joi.number().required().label("กรอกจำนวนสินค้า"),
     tracking_number: Joi.string().default(""),
     image: Joi.string().default(""),
-    payment_type: Joi.string().required().label('กรอกวิธีชำระเงิน')
+    payment_type: Joi.string().required().label('กรอกวิธีชำระเงิน'),
+    timestamp: Joi.date().default(Date.now())
   });
   return schema.validate(data);
 };

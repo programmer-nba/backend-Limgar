@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const { Orders, validate } = require("../../model/order/order.model");
+const { OrderStocks } = require("../../model/order/order.stock.model");
 const { Invoices } = require("../../model/order/invoice.model");
 const { Products } = require("../../model/product/product.model");
 const { ProductsPrice } = require("../../model/product/product_price.model");
@@ -140,9 +141,9 @@ exports.create = async (req, res) => {
             payment_type: req.body.payment_type,
             status: {
               name: "ค้างชำระ",
-              timestamp: dayjs(Date.now()).format(""),
+              timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
             },
-            timestamp: dayjs(Date.now()).format(""),
+            timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
           };
         } else {
           new_data = {
@@ -156,9 +157,9 @@ exports.create = async (req, res) => {
             payment_type: req.body.payment_type,
             status: {
               name: "รอตรวจสอบ",
-              timestamp: dayjs(Date.now()).format(""),
+              timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
             },
-            timestamp: dayjs(Date.now()).format(""),
+            timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
           };
         }
         const order_product = new Orders(new_data);
@@ -312,7 +313,7 @@ async function uploadFileCreate(req, res) {
     order.image = response.data.id;
     order.status = {
       name: "รอตรวจสอบ",
-      timestamp: dayjs(Date.now()).format(""),
+      timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
     };
     order.save();
     return res.status(201).send({ message: "แนบสลิปโอนเงินสำเร็จ", status: true });
@@ -440,16 +441,43 @@ exports.comfirm = async (req, res) => {
 
 exports.cutstock = async (req, res) => {
   try {
-    const product_stock = await ProductStock.findOne({
-      stock_id: req.body.stock_id,
-      product_id: req.body.product_id,
+    const updateStatus = await Orders.findOne({
+      _id: req.params.id
     });
-    if (!product_stock)
-      return res.status(403).send({ status: false, message: "ไม่พบสินค้าในสต๊อกสินค้า" })
-    const new_stock = product_stock.stock - req.body.quantity;
-    product_stock.stock = new_stock
-    product_stock.save()
-    return res.status(200).send({ status: true, message: "ปรับสต๊อกสินค้าเรียบร้อย" })
+    if (!updateStatus)
+      return res.status(404).send({ status: false, message: "ไม่พบข้อมูลออเดอร์สินค้า" });
+    for (item of req.body.cut_stock) {
+      const product_stock = await ProductStock.findOne({
+        stock_id: item.stock_id,
+        product_id: item.product_id,
+      });
+      if (!product_stock)
+        return res.status(403).send({ status: false, message: "ไม่พบสินค้าในสต๊อกสินค้า" })
+      // const new_stock = product_stock.stock -;
+      const product = {
+        product_id: item.product_id,
+        quantity: item.quantity
+      };
+      const data = {
+        receiptnumber: updateStatus.receiptnumber,
+        stock_id: item.stock_id,
+        customer: updateStatus.customer,
+        product_detail: product,
+        status: {
+          name: "รอตรวจสอบ",
+          timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+        },
+        timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+      };
+      const order_stock = new OrderStocks(data);
+      order_stock.save();
+    };
+    updateStatus.status.push({
+      name: "รอจัดส่งสินค้า",
+      timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+    });
+    updateStatus.save()
+    return res.status(200).send({ status: true, message: "เพิ่มออเดอร์ไปยังสต๊อกเรียบร้อยแล้ว" })
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
