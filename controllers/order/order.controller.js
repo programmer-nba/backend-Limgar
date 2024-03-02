@@ -62,19 +62,19 @@ exports.create = async (req, res) => {
           });
           if (price) {
             if (agent.row === 'ระดับ 1') {
-              product_price += (price.price.price_one * item.quantity)
+              product_cost += (price.cost.cost_one * item.quantity)
             } else if (agent.row === 'ระดับ 2') {
-              product_price += (price.price.price_two * item.quantity)
+              product_cost += (price.cost.cost_two * item.quantity)
             } else if (agent.row === 'ระดับ 3') {
-              product_price += (price.price.price_three * item.quantity)
+              product_cost += (price.cost.cost_three * item.quantity)
             } else if (agent.row === 'ระดับ 4') {
-              product_price += (price.price.price_four * item.quantity)
+              product_cost += (price.cost.cost_four * item.quantity)
             } else if (agent.row === 'ระดับ 5') {
-              product_price += (price.price.price_five * item.quantity)
+              product_cost += (price.cost.cost_five * item.quantity)
             } else {
-              product_price += (price.price.price_one * item.quantity)
+              product_cost += (price.cost.cost_one * item.quantity)
             }
-            product_cost += (price.cost * item.quantity);
+            product_price += (price.price * item.quantity);
             amount += (price.amount * item.quantity);
             order.push({
               product_id: item.product_id,
@@ -90,19 +90,31 @@ exports.create = async (req, res) => {
         }
         if (req.body.payment_type === 'COD') {
           const count = amount / 12;
-          if (count === 0) {
-            product_freight = 100;
+          if (count < 1) {
+            product_freight = 89;
           } else {
-            const counts = Math.round(count);
-            product_freight = (counts * 50) + 50;
+            const counts = count.toFixed();
+            product_freight = (counts * 89);
           }
-        } else {
+        } else if (req.body.payment_type === 'เงินโอน') {
           const count = amount / 12;
-          if (count === 0) {
-            product_freight = 50;
+          if (count < 1) {
+            product_freight = 39;
           } else {
-            const counts = Math.round(count);
-            product_freight = counts * 50;
+            const counts = count.toFixed();
+            product_freight = (counts * 39);
+          }
+        } else if (req.body.payment_type === 'เงินสด') {
+          if (!req.body.customer) {
+            product_freight = 0;
+          } else {
+            const count = amount / 12;
+            if (count < 1) {
+              product_freight = 39;
+            } else {
+              const counts = count.toFixed();
+              product_freight = (counts * 39);
+            }
           }
         }
         const totalprice = order.reduce(
@@ -115,22 +127,12 @@ exports.create = async (req, res) => {
         //generate receipt number
         const receiptnumber = await genOrderNumber(agent_id);
 
-        const customer = {
-          customer_name: req.body.customer_name,
-          customer_tel: req.body.customer_tel,
-          customer_address: req.body.customer_address,
-          customer_subdistrict: req.body.customer_subdistrict,
-          customer_district: req.body.customer_district,
-          customer_province: req.body.customer_province,
-          customer_postcode: req.body.customer_postcode,
-        };
-
         let new_data;
         if (req.body.payment_type === 'เงินโอน') {
           new_data = {
             receiptnumber: receiptnumber,
             agent_id: agent_id,
-            customer: customer,
+            customer: req.body.customer,
             product_detail: order,
             total_cost: totalcost,
             total_price: totalprice,
@@ -146,7 +148,7 @@ exports.create = async (req, res) => {
           new_data = {
             receiptnumber: receiptnumber,
             agent_id: agent_id,
-            customer: customer,
+            customer: req.body.customer,
             product_detail: order,
             total_cost: totalcost,
             total_price: totalprice,
@@ -159,7 +161,6 @@ exports.create = async (req, res) => {
             timestamp: dayjs(Date.now()).format(""),
           };
         }
-
         const order_product = new Orders(new_data);
         order_product.save();
         return res.status(200).send({ status: true, message: "สร้างออเดอร์สำเร็จ", data: order_product })
@@ -490,8 +491,8 @@ exports.confirmShipping = async (req, res) => {
       name: "ส่งสินค้าสำเร็จ",
       timestamp: dayjs(Date.now()).format(""),
     });
-    const profit = updateStatus.total_price - updateStatus.total_cost;
-    const commission = (profit * req.body.percent) / 100;
+    const profit = updateStatus.total_price - updateStatus.total_cost - updateStatus.total_freight;
+    const commission = profit;
     const vat = (commission * 3) / 100;
     const net = commission - vat;
     agent.commissiom += net;

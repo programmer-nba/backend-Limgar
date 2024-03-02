@@ -5,15 +5,13 @@ const OrderSchema = new mongoose.Schema({
   receiptnumber: { type: String, required: true },
   agent_id: { type: String, required: true },
   customer: {
-    type: {
-      customer_name: { type: String, required: true },
-      customer_tel: { type: String, required: true },
-      customer_address: { type: String, required: true },
-      customer_subdistrict: { type: String, required: true },
-      customer_district: { type: String, required: true },
-      customer_province: { type: String, required: true },
-      customer_postcode: { type: String, required: true },
-    }
+    customer_name: { type: String, required: false, default: "ไม่มี" },
+    customer_tel: { type: String, required: false, default: "ไม่มี" },
+    customer_address: { type: String, required: false, default: "ไม่มี" },
+    customer_subdistrict: { type: String, required: false, default: "ไม่มี" },
+    customer_district: { type: String, required: false, default: "ไม่มี" },
+    customer_province: { type: String, required: false, default: "ไม่มี" },
+    customer_postcode: { type: String, required: false, default: "ไม่มี" },
   },
   product_detail: {
     type: [
@@ -46,13 +44,15 @@ const Orders = mongoose.model("orders", OrderSchema);
 
 const validate = (data) => {
   const schema = Joi.object({
-    customer_name: Joi.string().required().label('กรอกชื่อลูกค้า'),
-    customer_tel: Joi.string().required().label('กรอกเบอร์โทรลูกค้า'),
-    customer_address: Joi.string().required().label('กรอกที่อยู่ลูกค้า'),
-    customer_subdistrict: Joi.string().required().label('ตำบล'),
-    customer_district: Joi.string().required().label('อำเภอ'),
-    customer_province: Joi.string().required().label('จังหวัด'),
-    customer_postcode: Joi.string().required().label('รหัสไปรษณีย์'),
+    customer: Joi.object({
+      customer_name: Joi.string().default("ไม่มี"),
+      customer_tel: Joi.string().default("ไม่มี"),
+      customer_address: Joi.string().default("ไม่มี"),
+      customer_subdistrict: Joi.string().default("ไม่มี"),
+      customer_district: Joi.string().default("ไม่มี"),
+      customer_province: Joi.string().default("ไม่มี"),
+      customer_postcode: Joi.string().default("ไม่มี"),
+    }),
     product_id: Joi.string().required().label('กรอกไอดีสินค้า'),
     quantity: Joi.number().required().label("กรอกจำนวนสินค้า"),
     tracking_number: Joi.string().default(""),
