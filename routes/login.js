@@ -2,19 +2,27 @@ const router = require("express").Router();
 
 const { Admins } = require("../model/user/admin.model");
 const { Agents } = require("../model/user/agent.model");
+const { Employees } = require("../model/user/employee.model");
 
-const authMe = require("../lib/auth.me");
 const bcrypt = require("bcrypt");
-const { decode } = require("jsonwebtoken");
-require("dotenv").config();
+const Joi = require("joi");
+
+const validate = (data) => {
+  const schema = Joi.object({
+    username: Joi.string().required().label("username"),
+    password: Joi.string().required().label("password"),
+  });
+  return schema.validate(data);
+};
 
 router.post("/", async (req, res) => {
   try {
+    const { error } = validate(req.body);
+    if (error)
+      return res.status(400).send({ message: error.details[0].message });
     let admin = await Admins.findOne({ admin_username: req.body.username });
     if (!admin) {
-      return await checkAgent(req, res);  // ไปหาใน Agents
-      //return res.status(404).send({ status: false, message: "User not found" });
-      //console.log("ไม่ใช่แอดมิน");
+      await checkAgent(req, res);  // ไปหาใน Agents
     } else {
       const validatePasswordAdmin = await bcrypt.compare(
         req.body.password,
@@ -23,7 +31,7 @@ router.post("/", async (req, res) => {
       if (!validatePasswordAdmin) {
         return res
           .status(403)
-          .send({ status: false, message: "Invalid password 1 " });
+          .send({ status: false, message: "รหัสผ่านไม่ถูกต้อง" });
       } else {
         const token = admin.generateAuthToken();
         const ResponesData = {
@@ -44,92 +52,59 @@ router.post("/", async (req, res) => {
   }
 });
 
-const checkAgent = async (req, res) => {
+async function checkAgent(req, res) {
   try {
-    const agent = await Agents.findOne({
+    let agent = await Agents.findOne({
       username: req.body.username
-    });
+    })
     if (!agent) {
-      console.log("User not found.");
-      return res.status(404)
-        .send({ status: false, message: "User not found." });
-
-    }
-
-    // ตรวจสอบรหัสผ่าน
-    const validatePasswordAdmin = await bcrypt.compare(
-      req.body.password,
-      agent.password
-    );
-    if (!validatePasswordAdmin) {
-      return res.status(403)
-        .send({ status: false, message: "Invalid password 1 " });
+      await checkEmplotee(req, res);
     } else {
+      const validatePassword = await bcrypt.compare(
+        req.body.password,
+        agent.password
+      );
+      if (!validatePassword)
+        return res.status(403).send({ status: false, message: "รหัสผ่านไม่ตรงกัน" });
       const token = agent.generateAuthToken();
-      const ResponesData = {
-        name: agent.name,
-        username: agent.username,
-        // position: admin.admin_position,
+      const data = {
+        first_name: agent.first_name,
+        last_name: agent.last_name,
+        active: agent.active
       };
-      return res.status(200).send({
-        token: token,
-        message: "เข้าสู่ระบบสำเร็จ",
-        result: ResponesData,
-        level: "agent",
-        position: agent.row,
-        status: true,
-      });
+      return res.status(200).send({ status: true, message: 'เข้าสู่ระบบสำเร็จ', token: token, data: data });
     }
-
-
   } catch (err) {
-    return res.status(500)
-      .send({ message: "Internal Server Error", status: false });
+    return res.status(500).send({ message: "Internal Server Error", status: false });
   }
 }
 
-/*router.get("/me", authMe, async (req, res) => {
+async function checkEmplotee(req, res) {
   try {
-    const { decodeed } = req;
-
-    if (decodeed && decodeed.row === "admin") {
-      const id = decode.id;
-      const admin = await Admins.findOne({ _id: id });
-      if (!admin) {
-        return res.status(400)
-          .send({ message: "Invalid Data", status: false });
-      } else {
-        return res.status(200)
-          .send({
-            name: admin.admin_name,
-            username: admin.admin_username,
-            position: "admin",
-            level: admin.admin_position,
-          });
-      }
+    let employee = await Employees.findOne({
+      username: req.body.username
+    })
+    if (!employee) {
+      console.log("ไม่พบข้อมูลผู้ใช้งาน")
+    } else {
+      const validatePassword = await bcrypt.compare(
+        req.body.password,
+        employee.password
+      );
+      if (!validatePassword)
+        return res.status(403).send({ status: false, message: "รหัสผ่านไม่ตรงกัน" });
+      const token = employee.generateAuthToken();
+      const data = {
+        first_name: employee.first_name,
+        last_name: employee.last_name,
+        active: employee.active,
+        stock_id: employee.stock_id
+      };
+      return res.status(200).send({ status: true, message: 'เข้าสู่ระบบสำเร็จ', token: token, data: data });
     }
-    if (decodeed && decodeed.row === "agent") {
-      const id = decode.id;
-      const agent = await Agents.findOne({ _id: id });
-      if (!agent) {
-        return res.status(400)
-          .send({ message: "Invalid Data", status: false });
-      } else {
-        return res.status(200)
-          .send({
-            name: agent.agent_name,
-            username: agent.agent_username,
-            position: "agent",
-            level: agent.agent_position,
-          });
-      }
-    }
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error", status: false });
+  }
+}
 
-  }
-  catch (err) {
-    return res.status(500)
-      .send({ message: "Internal Server Error", status: false });
-  }
-})
-*/
 module.exports = router;

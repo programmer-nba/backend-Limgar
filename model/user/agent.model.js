@@ -62,7 +62,7 @@ AgentSchema.methods.generateAuthToken = function () {
   const token = jwt.sign(
     {
       _id: this._id,
-      name: this.agent_name,
+      name: this.first_name,
       row: "agent",
       active: this.active,
     },
