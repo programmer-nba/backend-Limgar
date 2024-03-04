@@ -488,22 +488,34 @@ exports.cutstock = async (req, res) => {
 exports.tracking = async (req, res) => {
   try {
     const updateStatus = await OrderStocks.findOne({ _id: req.params.id });
-    if (updateStatus) {
-      updateStatus.status.push({
+    if (!updateStatus)
+      return res.status(403).send({ status: false, message: "ไม่พบข้อมูลออเดอร์ในสาขา" })
+    const id = updateStatus.order_ref_id;
+    const order = await Orders.findOne({ _id: id });
+    if (!order)
+      return res.status(403).send({ status: false, message: "ไม่พบข้อมูลออเดอร์จากสาขาหลัก" })
+    const product_stock = await ProductStock.findOne({
+      product_id: updateStatus.product_detail.product_id,
+      stock_id: updateStatus.stock_id
+    });
+    product_stock.stock -= updateStatus.product_detail.quantity;
+    updateStatus.status.push({
+      name: "ดำเนินการส่งสินค้า",
+      timestamp: dayjs(Date.now()).format(""),
+    });
+    updateStatus.tracking_number = req.body.tracking_number,
+      order.status.push({
         name: "ดำเนินการส่งสินค้า",
-        //  approver_user: "mock_admin",
         timestamp: dayjs(Date.now()).format(""),
       });
-      updateStatus.tracking_number = req.body.tracking_number,
-        updateStatus.save();
-      return res.status(200).send({
-        status: true,
-        message: "อนุมัติออเดอร์สำเร็จ",
-        data: updateStatus,
-      });
-    } else {
-      return res.status(403).send({ message: "เกิดข้อผิดพลาด" });
-    }
+    order.tracking_number = req.body.tracking_number;
+    product_stock.save();
+    order.save();
+    updateStatus.save();
+    return res.status(200).send({
+      status: true,
+      message: "จัดส่งสินค้าสำเร็จ",
+    });
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }
