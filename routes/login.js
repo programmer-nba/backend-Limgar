@@ -42,7 +42,7 @@ router.post("/", async (req, res) => {
         return res.status(200).send({
           token: token,
           message: "เข้าสู่ระบบสำเร็จ",
-          result: ResponesData,
+          data: ResponesData,
           status: true,
         });
       }
@@ -85,7 +85,7 @@ async function checkEmplotee(req, res) {
       username: req.body.username
     })
     if (!employee) {
-      console.log("ไม่พบข้อมูลผู้ใช้งาน")
+      return res.status(403).send({ status: false, message: "ไม่พบข้อมูลผู้ใช้งาน" })
     } else {
       const validatePassword = await bcrypt.compare(
         req.body.password,
@@ -98,7 +98,8 @@ async function checkEmplotee(req, res) {
         first_name: employee.first_name,
         last_name: employee.last_name,
         active: employee.active,
-        stock_id: employee.stock_id
+        stock_id: employee.stock_id,
+        row: 'employee'
       };
       return res.status(200).send({ status: true, message: 'เข้าสู่ระบบสำเร็จ', token: token, data: data });
     }

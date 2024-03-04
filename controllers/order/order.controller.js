@@ -141,9 +141,9 @@ exports.create = async (req, res) => {
             payment_type: req.body.payment_type,
             status: {
               name: "ค้างชำระ",
-              timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+              timestamp: dayjs(Date.now("")).format(""),
             },
-            timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+            timestamp: dayjs(Date.now("")).format(""),
           };
         } else {
           new_data = {
@@ -157,9 +157,9 @@ exports.create = async (req, res) => {
             payment_type: req.body.payment_type,
             status: {
               name: "รอตรวจสอบ",
-              timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+              timestamp: dayjs(Date.now("")).format(""),
             },
-            timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+            timestamp: dayjs(Date.now("")).format(""),
           };
         }
         const order_product = new Orders(new_data);
