@@ -2,6 +2,7 @@ const router = require("express").Router();
 const order = require("../../controllers/order/order.controller");
 const auth_admin = require("../../lib/auth.admin");
 const auth_agent = require("../../lib/auth.agent");
+const auth_employee = require("../../lib/auth.employee")
 
 router.post("/add", auth_agent, order.create);
 //router.get("/", auth_admin, order.getOrderAll);
@@ -24,10 +25,10 @@ router.delete("/:id", order.delete);
 //router.put("/request/:id/_:oid", order.holdOrderById);//--
 router.put("/confirm/:id", auth_admin, order.comfirm);
 router.put("/cut/stock/:id", order.cutstock);
-router.put("/tracking/:id", auth_admin, order.tracking);
+router.put("/tracking/:id", auth_employee, order.tracking);
 router.put("/cancel/:id", auth_admin, order.cancel);
 
-router.put("/confirm/shipping/:id", auth_admin, order.confirmShipping);
+router.put("/confirm/shipping/:id", auth_employee, order.confirmShipping);
 router.put("/cancel/shopping/:id", order.cancelShipping);
 
 

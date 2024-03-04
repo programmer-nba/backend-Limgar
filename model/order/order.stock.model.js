@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const OrderStockSchema = new mongoose.Schema({
     receiptnumber: { type: String, required: true },
     stock_id: { type: String, required: true },
+    order_ref_id: { type: String, required: true },
     customer: {
         customer_name: { type: String, required: false, default: "ไม่มี" },
         customer_tel: { type: String, required: false, default: "ไม่มี" },

@@ -460,6 +460,7 @@ exports.cutstock = async (req, res) => {
       };
       const data = {
         receiptnumber: updateStatus.receiptnumber,
+        order_ref_id: updateStatus._id,
         stock_id: item.stock_id,
         customer: updateStatus.customer,
         product_detail: product,
@@ -469,6 +470,7 @@ exports.cutstock = async (req, res) => {
         },
         timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
       };
+      console.log(data);
       const order_stock = new OrderStocks(data);
       order_stock.save();
     };
@@ -485,7 +487,7 @@ exports.cutstock = async (req, res) => {
 
 exports.tracking = async (req, res) => {
   try {
-    const updateStatus = await Orders.findOne({ _id: req.params.id });
+    const updateStatus = await OrderStocks.findOne({ _id: req.params.id });
     if (updateStatus) {
       updateStatus.status.push({
         name: "ดำเนินการส่งสินค้า",
