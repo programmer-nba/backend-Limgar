@@ -19,7 +19,7 @@ exports.create = async (req, res) => {
                 if (findDate.length < 9) {
                     res.send({
                         status: true,
-                        invoice_short: `TSG${dayjs(req.body.date).format("YYYYMM")}000${findDate.length + 1}`,
+                        invoice_short: `LIMGAR${dayjs(req.body.date).format("YYYYMM")}000${findDate.length + 1}`,
                     });
                 }
             }

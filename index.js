@@ -68,7 +68,7 @@ app.use("/Limgar/commission", require("./routes/commission/commission"));
 
 // pos
 app.use("/Limgar/pos", require("./routes/pos/preorder/preorder.shop"));
-app.use("/invoice-tax", require("./routes/pos/preorder/invoice.tax"));
+app.use("/Limgar/invoice-tax", require("./routes/pos/preorder/invoice.tax"));
 
 const port = process.env.PORT || 7474;
 app.listen(port, () => {

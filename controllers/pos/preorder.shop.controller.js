@@ -41,7 +41,15 @@ exports.create = async (req, res) => {
         const { error } = validate(req.body)
         if (error)
             return res.status(403).send({ status: false, message: error.details[0].message })
-
+        for (let item of req.body.poshop_detail) {
+            const cut_stock = await ProductStock.findOne({
+                product_id: item.product_id,
+                stock_id: item.stock_id
+            });
+            const amount = cut_stock.stock - (item.package * item.amount);
+            cut_stock.stock = amount;
+            cut_stock.save();
+        }
         const result = new PreOrderShops({ ...req.body }).save();
         return res.status(200).send({ status: true, message: "บันทึกการขายสำเร็จ", data: result });
     } catch (err) {
@@ -80,7 +88,7 @@ exports.getByStockId = async (req, res) => {
         const id = req.params.id;
         const preorder = await PreOrderShops.find();
         const preorder_shop = preorder.filter(
-            (el) => el.poshop_shop_id === id
+            (el) => el.poshop_stock_id === id
         );
         if (!preorder_shop)
             return res.status(403).send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" })

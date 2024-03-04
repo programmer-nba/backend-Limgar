@@ -92,18 +92,18 @@ exports.create = async (req, res) => {
         if (req.body.payment_type === 'COD') {
           const count = amount / 12;
           if (count < 1) {
-            product_freight = 89;
+            product_freight = 50;
           } else {
             const counts = count.toFixed();
-            product_freight = (counts * 89);
+            product_freight = (counts * 50);
           }
         } else if (req.body.payment_type === 'เงินโอน') {
           const count = amount / 12;
           if (count < 1) {
-            product_freight = 39;
+            product_freight = 0;
           } else {
             const counts = count.toFixed();
-            product_freight = (counts * 39);
+            product_freight = (counts * 0);
           }
         } else if (req.body.payment_type === 'เงินสด') {
           if (!req.body.customer) {
@@ -111,10 +111,10 @@ exports.create = async (req, res) => {
           } else {
             const count = amount / 12;
             if (count < 1) {
-              product_freight = 39;
+              product_freight = 0;
             } else {
               const counts = count.toFixed();
-              product_freight = (counts * 39);
+              product_freight = (counts * 0);
             }
           }
         }
