@@ -5,11 +5,11 @@ const { Admins } = require("../model/user/admin.model");
 const { Agents } = require("../model/user/agent.model");
 const { Rows } = require("../model/user/row.model")
 const auth = require("../lib/auth.me");
+const { Employees } = require("../model/user/employee.model");
 
 router.post("/", auth, async (req, res) => {
   const { decoded } = req;
   try {
-
     const id = decoded._id;
     if (decoded && decoded.row === "admin") {
       const admin = await Admins.findOne({ _id: id })
@@ -25,7 +25,6 @@ router.post("/", auth, async (req, res) => {
         });
       }
     }
-
     if (decoded && decoded.row === "agent") {
       const id = decoded._id;
       const agent = await Agents.findOne({ _id: id });
@@ -33,6 +32,14 @@ router.post("/", auth, async (req, res) => {
         return res.status(400)
           .send({ message: "Invalid Data", status: false });
       return res.status(200).send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: agent });
+    }
+    if (decoded && decoded.row === "employee") {
+      const id = decoded._id;
+      const employee = await Employees.findOne({ _id: id });
+      if (!employee)
+        return res.status(400)
+          .send({ message: "Invalid Data", status: false });
+      return res.status(200).send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: employee });
     }
 
     else {

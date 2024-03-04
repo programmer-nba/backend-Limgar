@@ -52,6 +52,7 @@ app.use("/Limgar/stock_order", require("./routes/stock/stock_order"));
 
 //order
 app.use("/Limgar/order", require("./routes/order/order"));
+app.use("/Limgar/order/stock", require("./routes/order/order.stock"));
 app.use("/Limgar/invoice", require("./routes/order/invoice"));
 
 // Function
@@ -64,6 +65,10 @@ app.use("/Limgar/image/collection", require("./routes/more/uploadfile"));
 
 // Commission
 app.use("/Limgar/commission", require("./routes/commission/commission"));
+
+// pos
+app.use("/Limgar/pos", require("./routes/pos/preorder/preorder.shop"));
+app.use("/invoice-tax", require("./routes/pos/preorder/invoice.tax"));
 
 const port = process.env.PORT || 7474;
 app.listen(port, () => {

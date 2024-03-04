@@ -1,0 +1,30 @@
+const dayjs = require("dayjs")
+const { PreOrderShops } = require("../../model/pos/preorder.shop")
+
+exports.create = async (req, res) => {
+    try {
+        PreOrderShops.find({
+            poshop_stock_id: req.body.stock_id
+        }).then((value) => {
+            console.log(value);
+            if (!value) {
+                return res.status(404);
+            } else {
+                console.log("ค่าที่รีเทอนกลับมา =>>>>>>> ", value);
+                const findDate = value.filter(
+                    (item) =>
+                        dayjs(item.poshop_timestamp).format("MM/YYYY") ===
+                        dayjs(req.body.date).format("MM/YYYY")
+                );
+                if (findDate.length < 9) {
+                    res.send({
+                        status: true,
+                        invoice_short: `TSG${dayjs(req.body.date).format("YYYYMM")}000${findDate.length + 1}`,
+                    });
+                }
+            }
+        })
+    } catch (err) {
+        return res.status(500).send({ message: "มีบางอย่างผิดพลาด", status: false });
+    }
+}
