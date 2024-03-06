@@ -29,7 +29,7 @@ router.put("/tracking/:id", auth_employee, order.tracking);
 router.put("/cancel/:id", auth_admin, order.cancel);
 
 router.put("/confirm/shipping/:id", auth_admin, order.confirmShipping);
-router.put("/cancel/shopping/:id", order.cancelShipping);
+router.put("/cancel/shopping/:id", auth_admin, order.cancelShipping);
 
 
 module.exports = router;

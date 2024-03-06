@@ -17,7 +17,9 @@ const ProductPriceShema = new mongoose.Schema({
     width: { type: Number, required: false, default: 0 },
     height: { type: Number, required: false, default: 0 },
     length: { type: Number, required: false, default: 0 },
-  }
+  },
+  freight: { type: Number, required: false, default: 0 },
+  freight_cod: { type: Number, required: false, default: 0 },
 });
 
 const ProductsPrice = mongoose.model("product_price", ProductPriceShema);
@@ -40,6 +42,8 @@ const validate = (data) => {
       height: Joi.number().required().default(0),
       length: Joi.number().required().default(0),
     },
+    freight: Joi.number().required().default(0),
+    freight_cod: Joi.number().required().default(0),
   });
   return schema.validate(data);
 };
