@@ -19,7 +19,7 @@ const OrderStockSchema = new mongoose.Schema({
     },
     tracking_number: { type: String, required: false, default: "" },
     status: { type: Array, required: true },
-    timestamp: { type: Date, required: false },
+    timestamp: { type: Date, required: false, default: Date.now() },
     cut_off: { type: Boolean, require: false, default: false }
 });
 

@@ -481,9 +481,9 @@ exports.cutstock = async (req, res) => {
         product_detail: product,
         status: {
           name: "รอจัดส่งสินค้า",
-          timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+          timestamp: dayjs(Date.now("")).format(""),
         },
-        timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+        timestamp: dayjs(Date.now("")).format(""),
       };
       console.log(data);
       const order_stock = new OrderStocks(data);
@@ -491,7 +491,7 @@ exports.cutstock = async (req, res) => {
     };
     updateStatus.status.push({
       name: "รอจัดส่งสินค้า",
-      timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
+      timestamp: dayjs(Date.now("")).format(""),
     });
     updateStatus.save()
     return res.status(200).send({ status: true, message: "เพิ่มออเดอร์ไปยังสต๊อกเรียบร้อยแล้ว" })
