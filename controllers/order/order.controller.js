@@ -1,14 +1,15 @@
 const bcrypt = require("bcrypt");
 const { Orders, validate } = require("../../model/order/order.model");
 const { OrderStocks } = require("../../model/order/order.stock.model");
+const { HistoryProductStocks } = require("../../model/stock/stock.history.model");
 const { Invoices } = require("../../model/order/invoice.model");
 const { Products } = require("../../model/product/product.model");
 const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Agents } = require("../../model/user/agent.model");
 const { Rows } = require("../../model/user/row.model");
-const { Customers } = require("../../model/user/customer.model")
-const { ProductStock } = require("../../model/stock/stock.product.model")
-const { Commission } = require("../../model/commission/commission.model")
+const { Customers } = require("../../model/user/customer.model");
+const { ProductStock } = require("../../model/stock/stock.product.model");
+const { Commission } = require("../../model/commission/commission.model");
 const moment = require('moment');
 const dayjs = require("dayjs");
 
@@ -484,7 +485,6 @@ exports.cutstock = async (req, res) => {
         },
         timestamp: dayjs(Date.now("")).format(""),
       };
-      console.log(data);
       const order_stock = new OrderStocks(data);
       order_stock.save();
     };
@@ -523,6 +523,14 @@ exports.tracking = async (req, res) => {
       timestamp: dayjs(Date.now()).format(""),
     });
     order.tracking_number = req.body.tracking_number;
+    const history = await new HistoryProductStocks({
+      stock_id: updateStatus.stock_id,
+      product_id: updateStatus.product_detail.product_id,
+      name: `ตัดสต๊อกสินค้า`,
+      amount: updateStatus.product_detail.quantity,
+      detail: `ตัดสต๊อกสินค้าเพื่อจัดส่ง ใบเสร็จเลขที่ ${updateStatus.receiptnumber}`,
+    });
+    history.save();
     product_stock.save();
     order.save();
     updateStatus.save();

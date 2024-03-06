@@ -138,7 +138,7 @@ exports.delete = async (req, res) => {
 
 exports.createHistory = async (req, res) => {
     try {
-        const { error } = validate(req.body);
+        const { error } = validateHistory(req.body);
         if (error)
             return res.status(403).send({ status: false, message: "มีบางอย่างผิดพลาด" });
         const history = await new HistoryProductStocks({
