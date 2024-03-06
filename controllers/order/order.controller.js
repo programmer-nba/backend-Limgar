@@ -548,7 +548,7 @@ exports.confirmShipping = async (req, res) => {
       name: "ส่งสินค้าสำเร็จ",
       timestamp: dayjs(Date.now()).format(""),
     });
-    const profit = updateStatus.total_price - updateStatus.total_cost - updateStatus.total_freight;
+    const profit = updateStatus.total_price - updateStatus.total_cost - updateStatus.total_service - updateStatus.total_freight + updateStatus.total_cod;
     const commission = profit;
     const vat = (commission * 3) / 100;
     const net = commission - vat;
