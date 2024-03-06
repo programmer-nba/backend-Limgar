@@ -518,11 +518,11 @@ exports.tracking = async (req, res) => {
       name: "ดำเนินการส่งสินค้า",
       timestamp: dayjs(Date.now()).format(""),
     });
-    updateStatus.tracking_number = req.body.tracking_number,
-      order.status.push({
-        name: "ดำเนินการส่งสินค้า",
-        timestamp: dayjs(Date.now()).format(""),
-      });
+    updateStatus.tracking_number = req.body.tracking_number;
+    order.status.push({
+      name: "ดำเนินการส่งสินค้า",
+      timestamp: dayjs(Date.now()).format(""),
+    });
     order.tracking_number = req.body.tracking_number;
     product_stock.save();
     order.save();
