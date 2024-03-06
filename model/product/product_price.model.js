@@ -16,7 +16,7 @@ const ProductPriceShema = new mongoose.Schema({
   size: {
     width: { type: Number, required: false, default: 0 },
     height: { type: Number, required: false, default: 0 },
-    lenght: { type: Number, required: false, default: 0 },
+    length: { type: Number, required: false, default: 0 },
   }
 });
 
