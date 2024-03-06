@@ -20,6 +20,16 @@ exports.create = async (req, res) => {
                         status: true,
                         invoice_short: `LIMGAR${dayjs(req.body.date).format("YYYYMM")}000${findDate.length + 1}`,
                     });
+                } else if (findDate.length < 99) {
+                    return res.send({
+                        status: true,
+                        invoice_short: `LIMGAR${dayjs(req.body.date).format("YYYYMM")}00${findDate.length + 1}`,
+                    });
+                } else if (findDate.length < 999) {
+                    return res.send({
+                        status: true,
+                        invoice_short: `LIMGAR${dayjs(req.body.date).format("YYYYMM")}0${findDate.length + 1}`,
+                    });
                 }
             }
         })
