@@ -8,6 +8,7 @@ const StockSchema = new mongoose.Schema({
   district: { type: String, required: true, },
   province: { type: String, required: true, },
   postcode: { type: String, required: true, },
+  tax: { type: String, required: true, },
   timestamp: { type: Date, required: false, default: Date.now() },
 });
 
@@ -21,6 +22,7 @@ const validate = (data) => {
     district: Joi.string().required().label('กรอกอำเภอ'),
     province: Joi.string().required().label('กรอกจังหวัด'),
     postcode: Joi.string().required().label('กรอกรหัสไปรษณีย์'),
+    tax: Joi.string().required().label('กรอกเลขผู้เสียภาษี'),
   });
   return schema.validate(data);
 };
