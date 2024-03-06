@@ -12,6 +12,12 @@ const ProductPriceShema = new mongoose.Schema({
     cost_five: { type: Number, required: false, default: 0 },
   },
   price: { type: Number, required: true },
+  weight: { type: Number, required: false, default: 0 },
+  size: {
+    width: { type: Number, required: false, default: 0 },
+    height: { type: Number, required: false, default: 0 },
+    lenght: { type: Number, required: false, default: 0 },
+  }
 });
 
 const ProductsPrice = mongoose.model("product_price", ProductPriceShema);
@@ -28,6 +34,12 @@ const validate = (data) => {
       cost_five: Joi.number().required().default(0)
     },
     price: Joi.number().required().label("กรอกราคาต้นทุนสินค้า"),
+    weight: Joi.number().required().default(0),
+    size: {
+      width: Joi.number().required().default(0),
+      height: Joi.number().required().default(0),
+      length: Joi.number().required().default(0),
+    },
   });
   return schema.validate(data);
 };
