@@ -50,7 +50,8 @@ exports.create = async (req, res) => {
             cut_stock.stock = amount;
             cut_stock.save();
         }
-        const result = new PreOrderShops({ ...req.body }).save();
+        const result = new PreOrderShops({ ...req.body });
+        result.save();
         return res.status(200).send({ status: true, message: "บันทึกการขายสำเร็จ", data: result });
     } catch (err) {
         console.log(err)
