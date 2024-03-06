@@ -1,7 +1,6 @@
 const { Products } = require("../../model/product/product.model");
 const { ProductsPrice, validate } = require("../../model/product/product_price.model");
 var _ = require("lodash");
-const { StocksSummary } = require("../../model/stock/stock_summary.model");
 
 exports.create = async (req, res) => {
   try {

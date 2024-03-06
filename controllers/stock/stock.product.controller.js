@@ -1,6 +1,7 @@
 const { ProductStock, validate } = require("../../model/stock/stock.product.model")
 const { Stocks } = require("../../model/stock/stock.model");
 const { Products } = require("../../model/product/product.model");
+const { HistoryProductStocks, validateHistory } = require("../../model/stock/stock.history.model");
 
 exports.create = async (req, res) => {
     try {
@@ -130,6 +131,36 @@ exports.delete = async (req, res) => {
                     status: false,
                 });
             });
+    } catch (err) {
+        return res.status(500).send({ message: "มีบางอย่างผิดพลาด", status: false });
+    }
+}
+
+exports.createHistory = async (req, res) => {
+    try {
+        const { error } = validate(req.body);
+        if (error)
+            return res.status(403).send({ status: false, message: "มีบางอย่างผิดพลาด" });
+        const history = await new HistoryProductStocks({
+            ...req.body,
+        });
+        history.save();
+        return res.status(200).send({ status: true, message: "เก็บประวัติสำเร็จ", data: history });
+    } catch (err) {
+        return res.status(500).send({ message: "มีบางอย่างผิดพลาด", status: false });
+    }
+}
+
+exports.getHistory = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const hisotry = await HistoryProductStocks.find();
+        const hisotrys = hisotry.filter(
+            (el) => el.stock_id === id
+        );
+        if (!hisotrys)
+            return res.status(403).send({ status: false, message: "ดึงข้อมูลประวัติไม่สำเร็จ" })
+        return res.status(200).send({ status: true, message: "ดึงข้อมูลประวัติสำเร็จ", data: hisotrys });
     } catch (err) {
         return res.status(500).send({ message: "มีบางอย่างผิดพลาด", status: false });
     }

@@ -9,6 +9,10 @@ router.get("/:id", authAdmin, stock_product.getProductStockById);
 router.get("/stock/:id", authAdmin, stock_product.getProductStockByStockId);
 
 router.put("/:id", authAdmin, stock_product.update);
-router.delete("/:id", authAdmin, stock_product.delete)
+router.delete("/:id", authAdmin, stock_product.delete);
+
+// History
+router.post("/history", stock_product.createHistory);
+router.get("/history/stock/:id", stock_product.getHistory);
 
 module.exports = router;
