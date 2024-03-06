@@ -480,7 +480,7 @@ exports.cutstock = async (req, res) => {
         customer: updateStatus.customer,
         product_detail: product,
         status: {
-          name: "รอตรวจสอบ",
+          name: "รอจัดส่งสินค้า",
           timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
         },
         timestamp: dayjs(Date.now("")).format("YYYY-MM-DD HH:mm:ss"),
