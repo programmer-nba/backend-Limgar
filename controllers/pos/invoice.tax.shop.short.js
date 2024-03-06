@@ -6,7 +6,6 @@ exports.create = async (req, res) => {
         PreOrderShops.find({
             poshop_stock_id: req.body.stock_id
         }).then((value) => {
-            console.log(value);
             if (!value) {
                 return res.status(404);
             } else {
@@ -17,7 +16,7 @@ exports.create = async (req, res) => {
                         dayjs(req.body.date).format("MM/YYYY")
                 );
                 if (findDate.length < 9) {
-                    res.send({
+                    return res.send({
                         status: true,
                         invoice_short: `LIMGAR${dayjs(req.body.date).format("YYYYMM")}000${findDate.length + 1}`,
                     });
