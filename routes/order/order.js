@@ -28,7 +28,7 @@ router.put("/cut/stock/:id", order.cutstock);
 router.put("/tracking/:id", auth_employee, order.tracking);
 router.put("/cancel/:id", auth_admin, order.cancel);
 
-router.put("/confirm/shipping/:id", auth_employee, order.confirmShipping);
+router.put("/confirm/shipping/:id", auth_admin, order.confirmShipping);
 router.put("/cancel/shopping/:id", order.cancelShipping);
 
 

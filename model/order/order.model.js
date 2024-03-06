@@ -26,6 +26,8 @@ const OrderSchema = new mongoose.Schema({
   total_cost: { type: Number, required: false, default: 0 },
   total_price: { type: Number, required: false, default: 0 },
   total_freight: { type: Number, required: false, default: 0 },
+  total_service: { type: Number, required: false, default: 0 },
+  total_cod: { type: Number, required: false, default: 0 },
   vat: { type: Number, required: false, default: 0 },
   discount: { type: Number, required: false, default: 0 },
   payment_type: {

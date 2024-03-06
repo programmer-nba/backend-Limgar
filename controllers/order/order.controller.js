@@ -50,7 +50,9 @@ exports.create = async (req, res) => {
       let order = [];
       let product_price = 0;
       let product_cost = 0;
-      let product_freight = 0;
+      let product_freight = 0; // ค่าขนส่ง
+      let product_service = 0; // ค่าบริการ
+      let product_cod = 0; // COD
       let amount = 0;
       if (agent.row === '') {
         return res.status(404)
@@ -92,28 +94,37 @@ exports.create = async (req, res) => {
         if (req.body.payment_type === 'COD') {
           const count = amount / 12;
           if (count < 1) {
-            product_freight = 50;
+            product_service = 20;
+            product_freight = 39;
+            product_cod = 50;
           } else {
             const counts = count.toFixed();
-            product_freight = (counts * 50);
+            product_service = (counts * 20);
+            product_freight = (counts * 39);
+            product_cod = (counts * 50);
           }
         } else if (req.body.payment_type === 'เงินโอน') {
           const count = amount / 12;
           if (count < 1) {
-            product_freight = 0;
+            product_service = 20;
+            product_freight = 39;
           } else {
             const counts = count.toFixed();
-            product_freight = (counts * 0);
+            product_service = (counts * 20);
+            product_freight = (counts * 39);
           }
         } else if (req.body.payment_type === 'เงินสด') {
           if (!req.body.customer) {
+            product_service = 20;
             product_freight = 0;
           } else {
             const count = amount / 12;
             if (count < 1) {
+              product_service = 20;
               product_freight = 0;
             } else {
               const counts = count.toFixed();
+              product_service = (counts * 20);
               product_freight = (counts * 0);
             }
           }
@@ -138,6 +149,8 @@ exports.create = async (req, res) => {
             total_cost: totalcost,
             total_price: totalprice,
             total_freight: product_freight,
+            total_service: product_service,
+            total_cod: product_cod,
             payment_type: req.body.payment_type,
             status: {
               name: "ค้างชำระ",
@@ -154,6 +167,8 @@ exports.create = async (req, res) => {
             total_cost: totalcost,
             total_price: totalprice,
             total_freight: product_freight,
+            total_service: product_service,
+            total_cod: product_cod,
             payment_type: req.body.payment_type,
             status: {
               name: "รอตรวจสอบ",
