@@ -78,7 +78,7 @@ exports.getEmployeeByStockId = async (req, res) => {
                 .send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" });
         return res
             .status(200)
-            .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: employee });
+            .send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: employees });
     } catch (err) {
         return res.status(500).send({ message: "Internal Server Error" });
     }
