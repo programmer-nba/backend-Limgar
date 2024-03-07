@@ -1,6 +1,7 @@
 const { PreOrderShops, validate } = require("../../model/pos/preorder.shop")
 const { ProductStock } = require("../../model/stock/stock.product.model")
 const { ProductsPrice } = require("../../model/product/product_price.model")
+const { HistoryProductStocks } = require("../../model/stock/stock.history.model")
 const dayjs = require("dayjs")
 
 exports.getProductStock = async (req, res) => {
@@ -49,6 +50,14 @@ exports.create = async (req, res) => {
             const amount = cut_stock.stock - (item.package * item.amount);
             cut_stock.stock = amount;
             cut_stock.save();
+            const history = await new HistoryProductStocks({
+                stock_id: item.stock_id,
+                product_id: item.product_id,
+                name: "ขายสินค้า",
+                amount: item.package * item.amount,
+                detail: `ตัดสต๊อกเพื่อขายสินค้า ใบเสร็จเลขที่ ${req.body.poshop_invoice}`
+            });
+            history.save();
         }
         const result = new PreOrderShops({ ...req.body });
         result.save();
