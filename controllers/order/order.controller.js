@@ -7,9 +7,9 @@ const { Products } = require("../../model/product/product.model");
 const { ProductsPrice } = require("../../model/product/product_price.model");
 const { Agents } = require("../../model/user/agent.model");
 const { Rows } = require("../../model/user/row.model");
-const { Customers } = require("../../model/user/customer.model");
 const { ProductStock } = require("../../model/stock/stock.product.model");
 const { Commission } = require("../../model/commission/commission.model");
+const { Customers } = require("../../model/user/customer.model");
 const moment = require('moment');
 const dayjs = require("dayjs");
 
@@ -138,6 +138,25 @@ exports.create = async (req, res) => {
 
         //generate receipt number
         const receiptnumber = await genOrderNumber(agent_id);
+
+        const customer = await Customers.findOne({
+          tel: req.body.customer.customer_tel
+        });
+
+        if (!customer) {
+          const data = {
+            agent_id: agent_id,
+            name: req.body.customer.customer_name,
+            tel: req.body.customer.customer_tel,
+            address: req.body.customer.customer_address,
+            subdistrict: req.body.customer.customer_subdistrict,
+            district: req.body.customer.customer_district,
+            province: req.body.customer.customer_province,
+            postcode: req.body.customer.customer_postcode,
+          };
+          const customer = new Customers(data);
+          customer.save();
+        }
 
         let new_data;
         if (req.body.payment_type === 'เงินโอน') {
