@@ -466,19 +466,36 @@ exports.cutstock = async (req, res) => {
         stock_id: item.stock_id,
         product_id: item.product_id,
       });
-      if (!product_stock)
+      const product_price = await ProductsPrice.findOne({
+        product_id: item.product_id,
+      });
+      if (!product_stock && !product_price)
         return res.status(403).send({ status: false, message: "ไม่พบสินค้าในสต๊อกสินค้า" })
-      // const new_stock = product_stock.stock -;
       const product = {
         product_id: item.product_id,
         quantity: item.quantity
       };
+      const size = {
+        weight: (item.quantity / product_price.amount).toFixed() * product_price.weight,
+        width: (item.quantity / product_price.amount).toFixed() * product_price.size.width,
+        height: (item.quantity / product_price.amount).toFixed() * product_price.size.height,
+        length: (item.quantity / product_price.amount).toFixed() * product_price.size.length,
+      };
+      let payment;
+      if (updateStatus.payment_type === 'COD') {
+        payment = "ชำระโดยผู้รับ"
+      } else {
+        payment = "ชำระโดยผู้ส่ง"
+      }
       const data = {
         receiptnumber: updateStatus.receiptnumber,
         order_ref_id: updateStatus._id,
         stock_id: item.stock_id,
         customer: updateStatus.customer,
         product_detail: product,
+        size: size,
+        payment: payment,
+        cod: updateStatus.total_cod,
         status: {
           name: "รอจัดส่งสินค้า",
           timestamp: dayjs(Date.now("")).format(""),
@@ -514,14 +531,14 @@ exports.tracking = async (req, res) => {
     });
     product_stock.stock -= updateStatus.product_detail.quantity;
     updateStatus.status.push({
-      name: "ดำเนินการส่งสินค้า",
+      name: "ดำเนินการจัดส่งสินค้า",
       timestamp: dayjs(Date.now()).format(""),
     });
     updateStatus.tracking_number = req.body.tracking_number;
     updateStatus.cut_off = true;
     updateStatus.emp = req.body.employee;
     order.status.push({
-      name: "ดำเนินการส่งสินค้า",
+      name: "ดำเนินการจัดส่งสินค้า",
       timestamp: dayjs(Date.now()).format(""),
     });
     order.tracking_number = req.body.tracking_number;
