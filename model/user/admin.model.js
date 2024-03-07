@@ -31,7 +31,7 @@ AdminSchema.methods.generateAuthToken = function () {
     },
     process.env.JWTPRIVATEKEY,
     {
-      expiresIn: "60d",
+      expiresIn: "2h",
     }
   );
   return token;

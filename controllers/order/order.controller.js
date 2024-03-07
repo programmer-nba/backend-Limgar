@@ -518,6 +518,8 @@ exports.tracking = async (req, res) => {
       timestamp: dayjs(Date.now()).format(""),
     });
     updateStatus.tracking_number = req.body.tracking_number;
+    updateStatus.cut_off = true;
+    updateStatus.emp = req.body.employee;
     order.status.push({
       name: "ดำเนินการส่งสินค้า",
       timestamp: dayjs(Date.now()).format(""),
