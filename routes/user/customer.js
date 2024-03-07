@@ -9,13 +9,4 @@ router.get("/findtel", customer.getCustomerByTelephone);
 router.put("/:id", customer.update);
 router.delete("/:id", customer.delete);
 
-/*router.post("/row", row.create);
-router.get("/row/all", row.getRowAll);
-router.get("/row/:id", row.getRowById);
-router.put("/row/:id", row.update);
-router.delete("/row/:id", row.delete);*/
-
-router.put("/customer/confirm/:id", customer.comfirm);
-router.put("/customer/cancel/:id", customer.cancel);
-
 module.exports = router;
