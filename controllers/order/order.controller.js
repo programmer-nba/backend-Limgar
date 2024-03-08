@@ -82,6 +82,7 @@ exports.create = async (req, res) => {
             amount += (price.amount * item.quantity);
             order.push({
               product_id: item.product_id,
+              product_pack_id: item.product_pack_id,
               quantity: amount,
               price: product_price,
               cost: product_cost,
@@ -492,43 +493,90 @@ exports.cutstock = async (req, res) => {
         product_id: item.product_id,
       });
       const product_price = await ProductsPrice.findOne({
+        _id: item.product_pack_id,
         product_id: item.product_id,
       });
       if (!product_stock && !product_price)
         return res.status(403).send({ status: false, message: "ไม่พบสินค้าในสต๊อกสินค้า" })
-      const product = {
-        product_id: item.product_id,
-        quantity: item.quantity
-      };
-      const size = {
-        weight: (item.quantity / product_price.amount).toFixed() * product_price.weight,
-        width: (item.quantity / product_price.amount).toFixed() * product_price.size.width,
-        height: (item.quantity / product_price.amount).toFixed() * product_price.size.height,
-        length: (item.quantity / product_price.amount).toFixed() * product_price.size.length,
-      };
-      let payment;
-      if (updateStatus.payment_type === 'COD') {
-        payment = "ชำระโดยผู้รับ"
-      } else {
-        payment = "ชำระโดยผู้ส่ง"
-      }
-      const data = {
-        receiptnumber: updateStatus.receiptnumber,
-        order_ref_id: updateStatus._id,
-        stock_id: item.stock_id,
-        customer: updateStatus.customer,
-        product_detail: product,
-        size: size,
-        payment: payment,
-        cod: updateStatus.total_cod,
-        status: {
-          name: "รอจัดส่งสินค้า",
+
+      if (product_price.amount <= 12) {
+        const product = {
+          product_id: item.product_id,
+          quantity: item.quantity
+        };
+        const receiptnumber = await genOrderTrackingNumber(item.stock_id);
+        let remark;
+        let net_cod = updateStatus.total_price + updateStatus.total_cod;
+        if (updateStatus.payment_type === 'COD') {
+          remark = `COD : ${net_cod} บาท : ${product_price.amount} ขวด`;
+        } else {
+          remark = `ชำระเงินแล้ว ${product_price.amount} ขวด`
+        }
+        const size = {
+          weight: product_price.weight,
+          width: product_price.size.width,
+          height: product_price.size.height,
+          length: product_price.size.length,
+        };
+        const data = {
+          receiptnumber: receiptnumber,
+          receiptnumber_ref: updateStatus.receiptnumber,
+          order_ref_id: updateStatus._id,
+          stock_id: item.stock_id,
+          customer: updateStatus.customer,
+          product_detail: product,
+          size: size,
+          net: net_cod,
+          status: {
+            name: "รอจัดส่งสินค้า",
+            timestamp: dayjs(Date.now("")).format(""),
+          },
           timestamp: dayjs(Date.now("")).format(""),
-        },
-        timestamp: dayjs(Date.now("")).format(""),
-      };
-      const order_stock = new OrderStocks(data);
-      order_stock.save();
+          remark: remark,
+        };
+        const order_stock = new OrderStocks(data);
+        order_stock.save();
+      } else if (product_price.amount > 12) {
+        const product = {
+          product_id: item.product_id,
+          quantity: 12,
+        };
+        const amount = item.quantity / 12;
+        for (let i = 0; i < amount; i++) {
+          const receiptnumber = await genOrderTrackingNumber(item.stock_id);
+          let remark;
+          let net_cod = (updateStatus.total_price + updateStatus.total_cod) / amount;
+          if (updateStatus.payment_type === 'COD') {
+            remark = `COD : ${net_cod} บาท : 1 ลัง`;
+          } else {
+            remark = `ชำระเงินแล้ว : ${amount} ลัง : ลังที่ ${i}`
+          }
+          const size = {
+            weight: product_price.weight,
+            width: product_price.size.width,
+            height: product_price.size.height,
+            length: product_price.size.length,
+          };
+          const data = {
+            receiptnumber: receiptnumber,
+            receiptnumber_ref: updateStatus.receiptnumber,
+            order_ref_id: updateStatus._id,
+            stock_id: item.stock_id,
+            customer: updateStatus.customer,
+            product_detail: product,
+            size: size,
+            net: net_cod,
+            status: {
+              name: "รอจัดส่งสินค้า",
+              timestamp: dayjs(Date.now("")).format(""),
+            },
+            timestamp: dayjs(Date.now("")).format(""),
+            remark: remark,
+          };
+          const order_stock = new OrderStocks(data);
+          order_stock.save();
+        }
+      }
     };
     updateStatus.status.push({
       name: "รอจัดส่งสินค้า",
@@ -689,7 +737,7 @@ exports.cancel = async (req, res) => {
 async function genOrderNumber(agent_id) {
   const pipeline = [
     {
-      $match: { agent_id: agent_id }
+      $match: { agent_id: agent_id },
     },
     {
       $group: { _id: 0, count: { $sum: 1 } },
@@ -697,20 +745,22 @@ async function genOrderNumber(agent_id) {
   ];
   const count = await Orders.aggregate(pipeline);
   const countValue = count.length > 0 ? count[0].count + 1 : 1;
-  const data = `REP${dayjs(Date.now()).format("YYYYMMDD")}${countValue
-    .toString()
-    .padStart(5, "0")}`;
+  const data = `REP${dayjs(Date.now()).format("YYYYMMDD")}${countValue.toString().padStart(5, "0")}`;
   return data;
 };
 
-function addOneToStringNumber(inputString) {
-  const parsedNumber = parseInt(inputString, 10);
 
-  // ตรวจสอบว่า inputString เป็นตัวเลขหรือไม่
-  if (isNaN(parsedNumber)) {
-    return 'Invalid input';
-  } else {
-    let result = (parsedNumber + 1).toString();
-    return result
-  }
+async function genOrderTrackingNumber(stock_id) {
+  const pipeline = [
+    {
+      $match: { stock_id: stock_id },
+    },
+    {
+      $group: { _id: 0, count: { $sum: 1 } },
+    },
+  ];
+  const count = await OrderStocks.aggregate(pipeline);
+  const countValue = count.length > 0 ? count[0].count + 1 : 1;
+  const data = `CC${dayjs(Date.now()).format("MMDD")}${countValue.toString().padStart(4, "0")}`;
+  return data;
 };

@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const OrderStockSchema = new mongoose.Schema({
     receiptnumber: { type: String, required: true },
+    receiptnumber_ref: { type: String, required: true },
     stock_id: { type: String, required: true },
     order_ref_id: { type: String, required: true },
     customer: {
@@ -23,13 +24,12 @@ const OrderStockSchema = new mongoose.Schema({
         height: { type: Number, required: false, default: 0 },
         length: { type: Number, required: false, default: 0 },
     },
-    // total_cod: { type: Number, required: false, default: 0 },
-    payment: { type: String, required: false },
-    cod: { type: Number, required: false, default: 0 },
-    tracking_number: { type: String, required: false, default: "" },
+    net: { type: Number, required: false, default: 0 },
+    tracking_number: { type: String, required: false, default: "-" },
     status: { type: Array, required: true },
     timestamp: { type: Date, required: false, default: Date.now() },
     cut_off: { type: Boolean, require: false, default: false },
+    remark: { type: String, required: false, default: "ไม่มี" },
     emp: { type: String, required: false, default: "ไม่มี" },
 });
 
