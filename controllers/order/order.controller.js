@@ -480,109 +480,66 @@ exports.comfirm = async (req, res) => {
   }
 };
 
-exports.cutstock = async (req, res) => {
+exports.updateCutStock = async (req, res) => {
   try {
     const updateStatus = await Orders.findOne({
       _id: req.params.id
     });
-    if (!updateStatus)
-      return res.status(404).send({ status: false, message: "ไม่พบข้อมูลออเดอร์สินค้า" });
-    for (item of req.body.cut_stock) {
-      const product_stock = await ProductStock.findOne({
-        stock_id: item.stock_id,
-        product_id: item.product_id,
-      });
-      const product_price = await ProductsPrice.findOne({
-        _id: item.product_pack_id,
-        product_id: item.product_id,
-      });
-      if (!product_stock && !product_price)
-        return res.status(403).send({ status: false, message: "ไม่พบสินค้าในสต๊อกสินค้า" })
-
-      if (product_price.amount <= 12) {
-        const product = {
-          product_id: item.product_id,
-          quantity: item.quantity
-        };
-        const receiptnumber = await genOrderTrackingNumber(item.stock_id);
-        let remark;
-        let net_cod = updateStatus.total_price + updateStatus.total_cod;
-        if (updateStatus.payment_type === 'COD') {
-          remark = `COD : ${net_cod} บาท : ${product_price.amount} ขวด`;
-        } else {
-          remark = `ชำระเงินแล้ว ${product_price.amount} ขวด`
-        }
-        const size = {
-          weight: product_price.weight,
-          width: product_price.size.width,
-          height: product_price.size.height,
-          length: product_price.size.length,
-        };
-        const data = {
-          receiptnumber: receiptnumber,
-          receiptnumber_ref: updateStatus.receiptnumber,
-          order_ref_id: updateStatus._id,
-          stock_id: item.stock_id,
-          customer: updateStatus.customer,
-          product_detail: product,
-          size: size,
-          net: net_cod,
-          status: {
-            name: "รอจัดส่งสินค้า",
-            timestamp: dayjs(Date.now("")).format(""),
-          },
-          timestamp: dayjs(Date.now("")).format(""),
-          remark: remark,
-        };
-        const order_stock = new OrderStocks(data);
-        order_stock.save();
-      } else if (product_price.amount > 12) {
-        const product = {
-          product_id: item.product_id,
-          quantity: 12,
-        };
-        const amount = item.quantity / 12;
-        for (let i = 0; i < amount; i++) {
-          const receiptnumber = await genOrderTrackingNumber(item.stock_id);
-          let remark;
-          let net_cod = (updateStatus.total_price + updateStatus.total_cod) / amount;
-          if (updateStatus.payment_type === 'COD') {
-            remark = `COD : ${net_cod} บาท : 1 ลัง`;
-          } else {
-            remark = `ชำระเงินแล้ว : ${amount} ลัง : ลังที่ ${i}`
-          }
-          const size = {
-            weight: product_price.weight,
-            width: product_price.size.width,
-            height: product_price.size.height,
-            length: product_price.size.length,
-          };
-          const data = {
-            receiptnumber: receiptnumber,
-            receiptnumber_ref: updateStatus.receiptnumber,
-            order_ref_id: updateStatus._id,
-            stock_id: item.stock_id,
-            customer: updateStatus.customer,
-            product_detail: product,
-            size: size,
-            net: net_cod,
-            status: {
-              name: "รอจัดส่งสินค้า",
-              timestamp: dayjs(Date.now("")).format(""),
-            },
-            timestamp: dayjs(Date.now("")).format(""),
-            remark: remark,
-          };
-          const order_stock = new OrderStocks(data);
-          order_stock.save();
-        }
-      }
-    };
     updateStatus.status.push({
       name: "รอจัดส่งสินค้า",
       timestamp: dayjs(Date.now("")).format(""),
     });
     updateStatus.save()
+    return res.status(200).send({ status: true, message: "เพิ่มออเดอร์ไปยังสต๊อกเรียบร้อยแล้ว" })
+  } catch (err) {
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+}
+
+exports.cutstock = async (req, res) => {
+  try {
+    const order = await Orders.findOne({
+      _id: req.body.order_id,
+    });
+    const product_stock = await ProductStock.findOne({
+      stock_id: req.body.stock_id,
+      product_id: req.body.product_id,
+    });
+    const product_price = await ProductsPrice.findOne({
+      _id: req.body.product_pack_id,
+      product_id: req.body.product_id,
+    });
+    if (!product_stock && !product_price && !order)
+      return res.status(403).send({ status: false, message: "ไม่พบสินค้า หรือ ราคาสินค้า หรือ ออเดอร์" });
+    const product = {
+      product_id: req.body.product_id,
+      quantity: req.body.quantity,
+    };
+    const receiptnumber = await genOrderReiceptNumber(req.body.stock_id);
+    const size = {
+      weight: product_price.weight,
+      width: product_price.size.width,
+      height: product_price.size.height,
+      length: product_price.size.length,
+    };
+    const data = {
+      receiptnumber: receiptnumber,
+      receiptnumber_ref: order.receiptnumber,
+      order_ref_id: order._id,
+      stock_id: req.body.stock_id,
+      customer: order.customer,
+      product_detail: product,
+      size: size,
+      net: req.body.net_cod,
+      status: {
+        name: "รอจัดส่งสินค้า",
+        timestamp: dayjs(Date.now("")).format(""),
+      },
+      timestamp: dayjs(Date.now("")).format(""),
+      remark: req.body.remark,
+    };
+    const order_stock = new OrderStocks(data);
+    order_stock.save();
     return res.status(200).send({ status: true, message: "เพิ่มออเดอร์ไปยังสต๊อกเรียบร้อยแล้ว" })
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
@@ -750,7 +707,7 @@ async function genOrderNumber(agent_id) {
 };
 
 
-async function genOrderTrackingNumber(stock_id) {
+async function genOrderReiceptNumber(stock_id) {
   const pipeline = [
     {
       $match: { stock_id: stock_id },
