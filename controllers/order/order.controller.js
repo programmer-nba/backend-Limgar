@@ -649,8 +649,7 @@ exports.cancelShipping = async (req, res) => {
     const amount2 = req.body.length;
     const agent = await Agents.findOne({ _id: order.agent_id });
     const net = (order.total_freight / amount1) * amount2;
-    const bounce = net;
-    agent.commissiom -= bounce;
+    agent.commissiom -= net;
     const data = {
       orderid: order.receiptnumber,
       agent_id: order.agent_id,
