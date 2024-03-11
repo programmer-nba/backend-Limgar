@@ -609,17 +609,13 @@ exports.confirmShipping = async (req, res) => {
       name: "ส่งสินค้าสำเร็จ",
       timestamp: dayjs(Date.now()).format(""),
     });
-    const profit = updateStatus.total_price - updateStatus.total_cost - updateStatus.total_service - updateStatus.total_freight + updateStatus.total_cod;
-    const commission = profit;
-    const vat = (commission * 3) / 100;
-    const net = commission - vat;
-    agent.commissiom += net;
+    agent.commissiom += req.body.net;
     const data = {
       orderid: updateStatus.receiptnumber,
       agent_id: updateStatus.agent_id,
-      commission: commission,
-      vat: vat,
-      net: net,
+      commission: req.body.net,
+      vat: req.body.vat,
+      net: req.body.net,
     };
     const new_commission = new Commission(data);
     updateStatus.save();
@@ -653,7 +649,7 @@ exports.cancelShipping = async (req, res) => {
     const amount2 = req.body.length;
     const agent = await Agents.findOne({ _id: order.agent_id });
     const net = (order.total_freight / amount1) * amount2;
-    const bounce = net * 2;
+    const bounce = net;
     agent.commissiom -= bounce;
     const data = {
       orderid: order.receiptnumber,
