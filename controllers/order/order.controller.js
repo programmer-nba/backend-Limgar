@@ -613,7 +613,7 @@ exports.confirmShipping = async (req, res) => {
     const data = {
       orderid: updateStatus.receiptnumber,
       agent_id: updateStatus.agent_id,
-      commission: req.body.net,
+      commission: req.body.commission,
       vat: req.body.vat,
       net: req.body.net,
     };
@@ -653,17 +653,13 @@ exports.cancelShipping = async (req, res) => {
     const data = {
       orderid: order.receiptnumber,
       agent_id: order.agent_id,
-      commission: -bounce,
+      commission: -net,
       vat: 0,
       net: 0,
     };
     const new_commission = new Commission(data);
     new_commission.save();
     agent.save();
-    // order.status.push({
-    //   name: "สินค้าตีกลับ",
-    //   timestamp: dayjs(Date.now()).format(""),
-    // });
     order.save();
     return res.status(200).send({ status: true, message: "สินค้าตีกลับสำเร็จ" })
   } catch (err) {
