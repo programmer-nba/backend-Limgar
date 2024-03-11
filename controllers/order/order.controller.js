@@ -564,6 +564,11 @@ exports.tracking = async (req, res) => {
       name: "ดำเนินการจัดส่งสินค้า",
       timestamp: dayjs(Date.now()).format(""),
     });
+    order.tracking_number.push({
+      receipt: updateStatus.receiptnumber,
+      tracking_number: req.body.tracking_number,
+      status: "ดำเนินการจัดส่งสินค้า"
+    });
     updateStatus.tracking_number = req.body.tracking_number;
     updateStatus.cut_off = true;
     updateStatus.emp = req.body.employee;
@@ -571,7 +576,7 @@ exports.tracking = async (req, res) => {
       name: "ดำเนินการจัดส่งสินค้า",
       timestamp: dayjs(Date.now()).format(""),
     });
-    order.tracking_number = req.body.tracking_number;
+    // order.tracking_number = req.body.tracking_number;
     const history = await new HistoryProductStocks({
       stock_id: updateStatus.stock_id,
       product_id: updateStatus.product_detail.product_id,
@@ -632,24 +637,40 @@ exports.cancelShipping = async (req, res) => {
     const order = await Orders.findOne({ _id: id });
     if (!order)
       return res.status(403).send({ status: false, message: "ไม่พบข้อมูลออเดอร์" });
-    order.status.push({
-      name: "สินค้าตีกลับ",
-      timestamp: dayjs(Date.now()).format(""),
-    });
-    const invoice = order.total_freight * 2;
-    const data = {
-      agent_id: order.agent_id,
-      receiptnumber: order.receiptnumber,
-      total: invoice,
-      status: {
-        name: "รอดำเนินการโอนเงิน",
+    for (item of req.body) {
+      const order_stock = await OrderStocks.findOne({ receiptnumber: item });
+      order_stock.status.push({
+        name: "สินค้าตีกลับ",
         timestamp: dayjs(Date.now()).format(""),
-      },
+      });
+      const bounce = order.tracking_number.find(
+        (el) => el.receipt === item
+      );
+      bounce.status = "สินค้าตีกลับ";
+      order_stock.save();
+    }
+    const amount1 = order.tracking_number.length;
+    const amount2 = req.body.length;
+    const agent = await Agents.findOne({ _id: order.agent_id });
+    const net = (order.total_freight / amount1) * amount2;
+    const bounce = net * 2;
+    agent.commissiom -= bounce;
+    const data = {
+      orderid: order.receiptnumber,
+      agent_id: order.agent_id,
+      commission: -bounce,
+      vat: 0,
+      net: 0,
     };
-    const new_invoice = new Invoices(data);
+    const new_commission = new Commission(data);
+    new_commission.save();
+    agent.save();
+    // order.status.push({
+    //   name: "สินค้าตีกลับ",
+    //   timestamp: dayjs(Date.now()).format(""),
+    // });
     order.save();
-    new_invoice.save();
-    return res.status(200).send({ status: true, message: "สร้างใบแจ้งหนี้ สินค้าตีกลับสำเร็จ", data: new_invoice })
+    return res.status(200).send({ status: true, message: "สินค้าตีกลับสำเร็จ" })
   } catch (err) {
     return res.status(500).send({ message: "Internal Server Error" });
   }

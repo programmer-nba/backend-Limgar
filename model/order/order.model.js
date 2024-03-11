@@ -36,7 +36,15 @@ const OrderSchema = new mongoose.Schema({
     enum: ["เงินสด", "เงินโอน", "COD"],
     required: true,
   },
-  tracking_number: { type: String, required: false, default: "" },
+  tracking_number: {
+    type: [
+      {
+        receipt: { type: String, required: false, default: "" },
+        tracking_number: { type: String, required: false, default: "" },
+        status: { type: String, required: false, default: "" },
+      }
+    ]
+  },
   image: { type: String, required: false, default: "" },
   remark: { type: String, required: false },
   status: { type: Array, required: true },
@@ -58,7 +66,7 @@ const validate = (data) => {
     }),
     product_id: Joi.string().required().label('กรอกไอดีสินค้า'),
     quantity: Joi.number().required().label("กรอกจำนวนสินค้า"),
-    tracking_number: Joi.string().default(""),
+    tracking_number: Joi.array().default([]),
     image: Joi.string().default(""),
     payment_type: Joi.string().required().label('กรอกวิธีชำระเงิน'),
     timestamp: Joi.date().default(Date.now())
