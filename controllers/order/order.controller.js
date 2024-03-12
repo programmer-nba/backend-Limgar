@@ -655,7 +655,7 @@ exports.cancelShipping = async (req, res) => {
       agent_id: order.agent_id,
       commission: -net,
       vat: 0,
-      net: 0,
+      net: -net,
     };
     const new_commission = new Commission(data);
     new_commission.save();
