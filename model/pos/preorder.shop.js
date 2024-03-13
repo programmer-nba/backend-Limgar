@@ -8,6 +8,7 @@ const PreOrderShopSchema = new mongoose.Schema({
     poshop_type_price: { type: String, required: false, default: "เงินสด" },
     poshop_total: { type: Number, required: true },
     poshop_change: { type: Number, required: true },
+    poshop_discount: { type: Number, required: true },
     poshop_status: { type: Boolean, required: false, default: true },
     poshop_ref_short_id: { type: String, required: false, default: "ไม่มี" }, // อ้างอิงกรณียกเลิกบิล
     poshop_timestamp: { type: Date, required: false, default: Date.now() },
@@ -27,6 +28,7 @@ const validate = (data) => {
         poshop_type_price: Joi.string().default("เงินสด"),
         poshop_total: Joi.number().required(),
         poshop_change: Joi.number().required(),
+        poshop_discount: Joi.number().required(),
         poshop_status: Joi.boolean().default(true),
         poshop_ref_short_id: Joi.string().default("ไม่มี"),
         poshop_timestamp: Joi.date().raw().default(Date.now()),
