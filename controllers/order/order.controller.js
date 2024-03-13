@@ -123,7 +123,7 @@ exports.create = async (req, res) => {
             product_service = (counts * 20);
             product_freight = (counts * price.freight);
           }
-        } else if (payment_type === 'เงินสด') {
+        } else {
           if (!req.body.customer) {
             product_service = 20;
           } else {
@@ -168,7 +168,7 @@ exports.create = async (req, res) => {
         }
 
         let new_data;
-        if (payment_type === 'เงินสด') {
+        if (payment_type === 'เงินโอน') {
           new_data = {
             receiptnumber: receiptnumber,
             agent_id: agent_id,
