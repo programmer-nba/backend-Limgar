@@ -54,6 +54,8 @@ exports.create = async (req, res) => {
       let product_service = 0; // ค่าบริการ
       let product_cod = 0; // COD
       let amount = 0;
+      let payment_type = req.body.payment_type;
+      payment_type = payment_type.replace(/\(.*\)/, "");
       if (agent.row === '') {
         return res.status(404)
           .send({ status: false, message: "ไม่พบ ข้อมูลระดับตัวแทนจำหน่าย" });
@@ -93,7 +95,7 @@ exports.create = async (req, res) => {
               .send({ status: false, message: "ไม่พบข้อมูลราคาสินค้า" });
           }
         }
-        if (req.body.payment_type === 'COD') {
+        if (payment_type === 'COD') {
           if (amount === 1) {
             product_service = 20;
             product_freight = price.freight_cod;
@@ -111,7 +113,7 @@ exports.create = async (req, res) => {
               product_cod = (counts * 50);
             }
           }
-        } else if (req.body.payment_type === 'เงินโอน') {
+        } else if (payment_type === 'เงินโอน') {
           const count = amount / 12;
           if (count < 1) {
             product_service = 20;
@@ -121,7 +123,7 @@ exports.create = async (req, res) => {
             product_service = (counts * 20);
             product_freight = (counts * price.freight);
           }
-        } else if (req.body.payment_type === 'เงินสด') {
+        } else if (payment_type === 'เงินสด') {
           if (!req.body.customer) {
             product_service = 20;
           } else {
@@ -166,7 +168,7 @@ exports.create = async (req, res) => {
         }
 
         let new_data;
-        if (req.body.payment_type === 'เงินโอน') {
+        if (payment_type === 'เงินโอน') {
           new_data = {
             receiptnumber: receiptnumber,
             agent_id: agent_id,

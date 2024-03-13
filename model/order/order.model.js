@@ -33,7 +33,7 @@ const OrderSchema = new mongoose.Schema({
   discount: { type: Number, required: false, default: 0 },
   payment_type: {
     type: String,
-    enum: ["เงินสด", "เงินโอน", "COD"],
+    enum: ["เงินสด (นัดรับ)", "เงินสด (จัดส่ง)", "เงินสด", "เงินโอน", "COD"],
     required: true,
   },
   tracking_number: {
