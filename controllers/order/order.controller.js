@@ -516,6 +516,7 @@ exports.cutstock = async (req, res) => {
     const product = {
       product_id: req.body.product_id,
       quantity: req.body.quantity,
+      detail: order.payment_type,
     };
     const receiptnumber = await genOrderReiceptNumber(req.body.stock_id);
     const size = {
