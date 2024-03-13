@@ -17,6 +17,7 @@ const OrderStockSchema = new mongoose.Schema({
     product_detail: {
         product_id: { type: String, required: true },
         quantity: { type: Number, required: true },
+        detail: { type: String, required: false, default: "" },
     },
     size: {
         weight: { type: Number, required: false, default: 0 },
