@@ -168,7 +168,7 @@ exports.create = async (req, res) => {
         }
 
         let new_data;
-        if (payment_type === 'เงินโอน') {
+        if (payment_type === 'เงินสด') {
           new_data = {
             receiptnumber: receiptnumber,
             agent_id: agent_id,
