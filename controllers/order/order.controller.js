@@ -54,8 +54,12 @@ exports.create = async (req, res) => {
       let product_service = 0; // ค่าบริการ
       let product_cod = 0; // COD
       let amount = 0;
-      let payment_type = req.body.payment_type;
-      payment_type = payment_type.replace(/\(.*\)/, "");
+      let type;
+      // let payment_type = req.body.payment_type;
+
+      payment_type = req.body.payment_type.replace(/\(.*\)/, "");
+      type = req.body.payment_type.match(/\((.*?)\)/g);
+
       if (agent.row === '') {
         return res.status(404)
           .send({ status: false, message: "ไม่พบ ข้อมูลระดับตัวแทนจำหน่าย" });
@@ -95,7 +99,7 @@ exports.create = async (req, res) => {
               .send({ status: false, message: "ไม่พบข้อมูลราคาสินค้า" });
           }
         }
-        if (payment_type === 'COD') {
+        if (type[0] === '(COD)') {
           if (amount === 1) {
             product_service = 20;
             product_freight = price.freight_cod;
@@ -113,7 +117,7 @@ exports.create = async (req, res) => {
               product_cod = (counts * 50);
             }
           }
-        } else if (payment_type === 'เงินโอน') {
+        } else if (type[0] === '(จัดส่ง)') {
           const count = amount / 12;
           if (count < 1) {
             product_service = 20;
@@ -123,19 +127,15 @@ exports.create = async (req, res) => {
             product_service = (counts * 20);
             product_freight = (counts * price.freight);
           }
-        } else {
-          if (!req.body.customer) {
+        } else if (type[0] === 'นัดรับ') {
+          const count = amount / 12;
+          if (count < 1) {
             product_service = 20;
+            product_freight = price.freight;
           } else {
-            const count = amount / 12;
-            if (count < 1) {
-              product_service = 20;
-              product_freight = price.freight;
-            } else {
-              const counts = count.toFixed();
-              product_service = (counts * 20);
-              product_freight = (counts * price.freight);
-            }
+            const counts = count.toFixed();
+            product_service = (counts * 20);
+            product_freight = (counts * price.freight);
           }
         }
         const totalprice = order.reduce(
