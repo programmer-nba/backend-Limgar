@@ -22,8 +22,8 @@ exports.getStockAll = async (req, res) => {
   try {
     const stock = await Stocks.find();
     if (!stock)
-      return res.status(403).send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" })
-    return res.status(201).send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: stock });
+      return res.status(403).send({ status: false, message: "ดึงข้อมูลร้านไม่สำเร็จ" })
+    return res.status(201).send({ status: true, message: "ดึงข้อมูลร้านสำเร็จ", data: stock });
   } catch (err) {
     return res.status(500).send({ message: "มีบางอย่างผิดพลาด", status: false });
   }
@@ -34,8 +34,8 @@ exports.getById = async (req, res) => {
     const id = req.params.id;
     const stock = await Stocks.findOne({ _id: id });
     if (!stock)
-      return res.status(403).send({ status: false, message: "ดึงข้อมูลไม่สำเร็จ" })
-    return res.status(201).send({ status: true, message: "ดึงข้อมูลสำเร็จ", data: stock });
+      return res.status(403).send({ status: false, message: "ดึงข้อมูลร้านไม่สำเร็จ" })
+    return res.status(201).send({ status: true, message: "ดึงข้อมูลร้านสำเร็จ", data: stock });
   } catch (err) {
     return res.status(500).send({ message: "มีบางอย่างผิดพลาด", status: false });
   }
